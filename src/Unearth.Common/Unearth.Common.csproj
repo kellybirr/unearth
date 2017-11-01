@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Unearth</RootNamespace>
+    <AssemblyName>Unearth</AssemblyName>
+    <AssemblyVersion>1.3.1.478</AssemblyVersion>
+    <FileVersion>1.3.1.478</FileVersion>
+    <Version>1.3.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DnsQuery.cs" />
+    <Compile Remove="DnsQueryAsync.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Unearth.Core\Unearth.Core.csproj" />
+  </ItemGroup>
+
+</Project>

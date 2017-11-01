@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Unearth</RootNamespace>
+    <AssemblyVersion>1.3.0.449</AssemblyVersion>
+    <FileVersion>1.3.0.449</FileVersion>
+    <Version>1.3.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Dns\Linux\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="2.0.0" />
+  </ItemGroup>
+
+</Project>
