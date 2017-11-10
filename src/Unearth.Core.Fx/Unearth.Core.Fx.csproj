@@ -48,6 +48,9 @@
     <Compile Include="..\Unearth.Core\Core\ServiceBase.cs">
       <Link>Core\ServiceBase.cs</Link>
     </Compile>
+    <Compile Include="..\Unearth.Core\Core\ServiceCache.cs">
+      <Link>Core\ServiceCache.cs</Link>
+    </Compile>
     <Compile Include="..\Unearth.Core\Core\ServiceDnsName.cs">
       <Link>Core\ServiceDnsName.cs</Link>
     </Compile>

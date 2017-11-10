@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Unearth.WebApi;
@@ -68,5 +69,39 @@ namespace ServiceResolver.UnitTests
                 Console.WriteLine(u.ToString());
         }
 
+        [TestMethod]
+        public void Sync_MyServer_Test()
+        {
+            DateTime until = DateTime.Now.AddHours(1);
+            while (DateTime.Now < until)
+            {
+                DateTime b4 = DateTime.UtcNow;
+                string uri = HtmlExtensions.MyServer;
+                double ms = DateTime.UtcNow.Subtract(b4).TotalMilliseconds;
+
+                Console.WriteLine($"{uri} ({ms})");
+
+                Thread.Sleep(10_000);
+            }
+        }
+
+    }
+
+    public static class HtmlExtensions
+    {
+        private static readonly WebApiLocator _locator = new WebApiLocator {ServiceDomain = "apps.ipzhost.net"};
+
+        public static string MyServer
+        {
+            get
+            {
+                string location = "@dialer-ivr-pub";
+                if (!location.StartsWith("@")) return location;
+
+                // this has to be sync
+                WebApiService webService = _locator.Locate(location.Substring(1)).Result;
+                return webService.Uris.First().ToString().TrimEnd('/');
+            }
+        }
     }
 }

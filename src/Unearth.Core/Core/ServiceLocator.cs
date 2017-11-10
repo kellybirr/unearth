@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Unearth.Dns;
 
@@ -10,10 +9,10 @@ namespace Unearth.Core
         protected ServiceLocator()
         {
             _serviceDomain = Environment.GetEnvironmentVariable("SERVICE_DOMAIN");
-            Cache = new ConcurrentDictionary<string, SrvLookup<TService>>(StringComparer.OrdinalIgnoreCase);
+            Cache = new ServiceCache<TService>();
         }
 
-        protected ConcurrentDictionary<string, SrvLookup<TService>> Cache { get; }
+        protected ServiceCache<TService> Cache { get; }
 
         public void Clear() => Cache.Clear();
 
@@ -43,39 +42,59 @@ namespace Unearth.Core
 
         protected async Task<TService> Locate(ServiceDnsName name, Func<string, SrvLookup<TService>> locateFunc)
         {
-            var task = (NoCache) ? LocateNow(name, locateFunc) : LocateCached(name, locateFunc);
-            return await task.ConfigureAwait(false);
+            TService service = (NoCache)
+                ? await LocateNow(name, locateFunc).ConfigureAwait(false)
+                : await LocateCached(name, locateFunc).ConfigureAwait(false);
+
+            return service;
         }
 
         private async Task<TService> LocateNow(ServiceDnsName name, Func<string, SrvLookup<TService>> locateFunc)
         {
-            return (await locateFunc(name.DnsName).Task.ConfigureAwait(false)).Invoke();
+            Func<TService> factory = await locateFunc(name.DnsName).Task;
+            return factory.Invoke();
         }
 
         private async Task<TService> LocateCached(ServiceDnsName name, Func<string, SrvLookup<TService>> locateFunc)
         {
-            TService service = null;
-            void SetRetry()
-            {
-                Cache.TryRemove(name.DnsName, out var dummy);
-                service = null;
-            }
+            const int MAX_TRIES = 4, WAIT_AFTER = 2;
 
-            int trys = 3;  // max retries
-            while (service == null && trys-- > 0)
+            TService service = null;
+            int trys = 0;  // max retries
+            DnsResolveException lastException = null;
+            while (service == null && ++trys <= MAX_TRIES)
             {
+                if (trys > WAIT_AFTER) // Wait 1 sec
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+
                 try
                 {
+                    // get lookup and factory
+                    SrvLookup<TService> cachedLookup = Cache.GetOrAdd(name.DnsName, locateFunc);
+                    Func<TService> factory = await cachedLookup.Task;
+
                     // check cache & expire time
-                    service = (await Cache.GetOrAdd(name.DnsName, locateFunc).Task.ConfigureAwait(false)).Invoke();
-                    if (service.Expires < DateTime.UtcNow) SetRetry();
+                    service = factory.Invoke();
+                    if (service.Expires < DateTime.UtcNow)
+                    {
+                        // update lookup, factory and service
+                        SrvLookup<TService> newLookup = Cache.CheckAndUpdate(name.DnsName, cachedLookup, locateFunc);
+                        factory = await newLookup.Task;
+                        service = factory.Invoke();
+                    }
                 }
-                catch (DnsResolveException)
+                catch (DnsResolveException dex)
                 {
-                    SetRetry();    // Wait 1 sec & try again
-                    await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                    lastException = dex;
+
+                    // remove cached entry
+                    service = null;
+                    Cache.Remove(name.DnsName);
                 }
             }
+
+            if (service == null)
+                throw lastException ?? new DnsResolveException(name.DnsName);
 
             return service;
         }

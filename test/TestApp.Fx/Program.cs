@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Unearth;
@@ -18,7 +19,83 @@ namespace TestApp.Fx
         static readonly DatabaseLocator _database = new DatabaseLocator();
         static readonly GenericLocator _generic = new GenericLocator();
 
-        static void Main(string[] args)
+        static void Main()
+        {
+            try
+            {
+                int sleepTime = 2000;
+                DateTime until = DateTime.Now.AddHours(1);
+                while (DateTime.Now < until)
+                {
+                    void DoIt()
+                    {
+                        DateTime b4 = DateTime.UtcNow;
+                        string uri = HtmlExtensions.MyServer;
+                        double ms = DateTime.UtcNow.Subtract(b4).TotalMilliseconds;
+
+                        Console.WriteLine($"{uri} ({ms}/{sleepTime})");
+                    }
+
+                    Task[] tasks =
+                    {
+                        Task.Run(() => DoIt()),
+                        Task.Run(() => DoIt()),
+                        Task.Run(() => DoIt()),
+                        Task.Run(() => DoIt()),
+                        Task.Run(() => DoIt())
+                    };
+
+                    Task.WaitAll(tasks);
+
+                    Thread.Sleep(sleepTime);
+                    sleepTime += 200;
+                }
+
+                Console.WriteLine("OK");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            Console.ReadLine();
+        }
+
+        public static class HtmlExtensions
+        {
+            private static readonly WebApiLocator _locator = new WebApiLocator { ServiceDomain = "apps.ipzhost.net" };
+
+            public static string MyServer
+            {
+                get
+                {
+                    Task<WebApiService> task = null;
+                    WebApiService webService = null;
+                    try
+                    {
+                        string location = "@dialer-ivr-pub";
+                        if (!location.StartsWith("@")) return location;
+
+                        // this has to be sync
+                        task = _locator.Locate(location.Substring(1));
+                        webService = task.Result;
+                        if (webService == null)
+                        {
+                            Console.WriteLine("NULL");
+                        }
+
+                        return webService.Uris.First().ToString().TrimEnd('/');
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+                }
+            }
+        }
+
+        static void Main_2(string[] args)
         {
             if (args.Length < 2)
             {

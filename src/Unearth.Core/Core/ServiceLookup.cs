@@ -31,6 +31,7 @@ namespace Unearth.Core
     {
         protected TaskCompletionSource<Func<TService>> Completion { get; }
         protected ServiceFactory<TService> Factory { get; }
+        protected DnsEntry[] DnsEntries { get; set; }
         protected DnsQuery SrvQuery { get; }
         protected ServiceDnsName Name { get; }
 
@@ -44,6 +45,8 @@ namespace Unearth.Core
             Completion = new TaskCompletionSource<Func<TService>>(this);
         }
 
+        protected TService ResultFactory() => Factory(Name, DnsEntries);
+
         public virtual SrvLookup<TService> Start()
         {
             // Query DNS servers
@@ -51,7 +54,8 @@ namespace Unearth.Core
             {
                 try
                 {
-                    Completion.SetResult(() => Factory(Name, t.Result));
+                    DnsEntries = t.Result;
+                    Completion.SetResult(ResultFactory);
                 }
                 catch (Exception ex)
                 {
@@ -81,8 +85,8 @@ namespace Unearth.Core
             {
                 try
                 {
-                    IEnumerable<DnsEntry> union = t.Result[0].Union(t.Result[1]);
-                    Completion.SetResult(() => Factory(Name, union));
+                    DnsEntries = t.Result[0].Union(t.Result[1]).ToArray();
+                    Completion.SetResult(ResultFactory);
                 }
                 catch (Exception ex)
                 {
@@ -111,7 +115,8 @@ namespace Unearth.Core
             {
                 try
                 {
-                    Completion.SetResult(() => Factory(Name, t.Result));
+                    DnsEntries = t.Result;
+                    Completion.SetResult(ResultFactory);
                 }
                 catch (Exception ex)
                 {
