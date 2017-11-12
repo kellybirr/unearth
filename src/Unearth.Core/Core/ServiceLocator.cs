@@ -9,7 +9,7 @@ namespace Unearth.Core
         protected ServiceLocator()
         {
             _serviceDomain = Environment.GetEnvironmentVariable("SERVICE_DOMAIN");
-            Cache = new ServiceCache<TService>();
+            Cache = new ServiceCache<TService>(this);
         }
 
         protected ServiceCache<TService> Cache { get; }

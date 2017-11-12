@@ -3,12 +3,21 @@ using System.Collections.Generic;
 
 namespace Unearth.Core
 {
-    public class ServiceCache<TService>
+    public class ServiceCache<TService> where TService : class, IServiceInfo
     {
         private readonly object _syncLock = new object();
 
-        private readonly Dictionary<string, SrvLookup<TService>> _bag 
+        private readonly Dictionary<string, SrvLookup<TService>> _bag
             = new Dictionary<string, SrvLookup<TService>>(StringComparer.OrdinalIgnoreCase);
+
+        public ServiceLocator<TService> Owner { get; }
+
+        public event EventHandler<ServiceCacheUpdateEventArgs> Updated;
+
+        public ServiceCache(ServiceLocator<TService> owner)
+        {
+            Owner = owner;
+        }
 
         public SrvLookup<TService> GetOrAdd(string serviceName, Func<string, SrvLookup<TService>> lookupFunc)
         {
@@ -26,6 +35,9 @@ namespace Unearth.Core
 
                 result = lookupFunc(serviceName);
                 _bag[serviceName] = result;
+
+                // fire update event
+                Updated?.Invoke(this, new ServiceCacheUpdateEventArgs { DnsName = serviceName });
 
                 return result;
             }
@@ -45,7 +57,8 @@ namespace Unearth.Core
                 result = lookupFunc(serviceName);
                 _bag[serviceName] = result;
 
-                //Console.WriteLine("CACHE UPDATE");
+                // fire updated event
+                Updated?.Invoke(this, new ServiceCacheUpdateEventArgs {DnsName = serviceName});
 
                 return result;
             }
@@ -62,5 +75,10 @@ namespace Unearth.Core
             lock (_syncLock)
                 _bag.Clear();
         }
+    }
+
+    public class ServiceCacheUpdateEventArgs : EventArgs
+    {
+        public string DnsName { get; set; }
     }
 }
