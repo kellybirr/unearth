@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Unearth</RootNamespace>
-    <AssemblyVersion>1.3.0.449</AssemblyVersion>
-    <FileVersion>1.3.0.449</FileVersion>
-    <Version>1.3.0</Version>
+    <AssemblyVersion>1.3.2.500</AssemblyVersion>
+    <FileVersion>1.3.2.449</FileVersion>
+    <Version>1.3.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
