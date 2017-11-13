@@ -19,7 +19,7 @@ namespace Unearth.Core
             Owner = owner;
         }
 
-        public SrvLookup<TService> GetOrAdd(string serviceName, Func<string, SrvLookup<TService>> lookupFunc)
+        public SrvLookup<TService> GetOrAdd(string serviceName, SrvLookupFunction<TService> lookupFunc)
         {
             // ReSharper disable once InlineOutVariableDeclaration
             SrvLookup<TService> result;
@@ -43,7 +43,7 @@ namespace Unearth.Core
             }
         }
 
-        public SrvLookup<TService> CheckAndUpdate(string serviceName, SrvLookup<TService> oldValue, Func<string, SrvLookup<TService>> lookupFunc)
+        public SrvLookup<TService> CheckAndUpdate(string serviceName, SrvLookup<TService> oldValue, SrvLookupFunction<TService> lookupFunc)
         {
             lock (_syncLock)
             {

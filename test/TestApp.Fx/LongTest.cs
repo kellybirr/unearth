@@ -24,7 +24,7 @@ namespace TestApp.Fx
                         string uri = HtmlExtensions.MyServer;
                         double ms = DateTime.UtcNow.Subtract(b4).TotalMilliseconds;
 
-                        Console.WriteLine($"{uri} ({ms}/{sleepTime})");
+                        Console.WriteLine($"{uri} ( {ms:F2} / {sleepTime} )");
                     }
 
                     Task[] tasks =
@@ -41,7 +41,7 @@ namespace TestApp.Fx
                     Task.WaitAll(tasks);
 
                     Thread.Sleep(sleepTime);
-                    sleepTime += 200;
+                    sleepTime += 100;
                 }
 
                 Console.WriteLine("OK");
