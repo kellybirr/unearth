@@ -46,6 +46,15 @@ namespace Unearth.Dns
             Expires = DateTime.UtcNow.Add(TimeToLive);
         }
 
+        internal DnsEntry(DnsRecordType type, string name, uint ttl)
+        {
+            Type = type;
+            Name = name;
+
+            TimeToLive = TimeSpan.FromSeconds(ttl);
+            Expires = DateTime.UtcNow.Add(TimeToLive);            
+        }
+
         public DnsRecordType Type { get; }
 
         public string Name { get; }
@@ -142,6 +151,15 @@ namespace Unearth.Dns
             Priority = data.Priority;
             Weight = data.Weight;
             Port = data.Port;
+        }
+
+        internal DnsServiceEntry(string name, string host, int port, int priority, int weight, uint ttl)
+            : base(DnsRecordType.SRV, name, ttl)
+        {
+            Host = host;
+            Port = port;
+            Priority = priority;
+            Weight = weight;
         }
 
         public string Host { get; }

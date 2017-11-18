@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Unearth.Dns.Windows;
 
 namespace Unearth.Dns
 {
@@ -19,10 +18,13 @@ namespace Unearth.Dns
                 throw new ArgumentOutOfRangeException(nameof(query));
 
 #if (NETSTANDARD2_0)
-            if (! RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                throw new PlatformNotSupportedException();
+            _dns = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? (IDnsQuery)new Windows.WDnsQuery(query, type)
+                : (IDnsQuery)new Linux.LDnsQuery(query, type);
+
+#else
+            _dns = new Windows.WDnsQuery(query, type);
 #endif
-            _dns = new WDnsQuery(query, type);
         }
 
         public DnsQueryStatus QueryStatus => _dns.QueryStatus;
