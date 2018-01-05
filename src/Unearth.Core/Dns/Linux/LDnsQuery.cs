@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -35,74 +34,43 @@ namespace Unearth.Dns.Linux
 
         public Task<DnsEntry[]> TryResolve()
         {
-            byte[] buffer = new byte[1024];
-            byte[] name = new byte[256];
-            ushort type, dlen, priority, weight, port, cls;
-            uint ttl;
-            int size;
-            GCHandle handle;
-
             var records = new List<DnsEntry>();
 
-            size = LinuxLib.res_query(Query, C_IN, (int)Type, buffer, buffer.Length);
+            byte[] dataBuffer = new byte[1024];
+            int dataLen = LinuxLib.res_query(Query, C_IN, (int)Type, dataBuffer, dataBuffer.Length);
 
-            handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            GCHandle handle = GCHandle.Alloc(dataBuffer, GCHandleType.Pinned);
 
             try {
-                HEADER header = (HEADER)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(HEADER));
+                var responseHeader = Marshal.PtrToStructure<DNS_RESPONSE_HEADER>(handle.AddrOfPinnedObject());
+                int headerSize = Marshal.SizeOf(responseHeader);
 
-                int qdcount = LinuxLib.ntohs(header.qdcount);
-                int ancount = LinuxLib.ntohs(header.ancount);
-
-                int headerSize = Marshal.SizeOf(header);
+                int qdCount = LinuxLib.ntohs(responseHeader.qdCount);
+                int anCount = LinuxLib.ntohs(responseHeader.anCount);
 
                 unsafe {
-                    fixed (byte* pBuffer = buffer) {
+                    fixed (byte* pBuffer = dataBuffer)
+                    {
+                        var reader = new LDnsReader
+                        {
+                            Buffer = pBuffer,
+                            Current = pBuffer + headerSize,
+                            End = pBuffer + dataLen
+                        };
 
-                        byte *pos = pBuffer + headerSize;
-                        byte *end = pBuffer + size;
-
-                        // Question
-                        while (qdcount-- > 0 && pos < end) {
-                            size = LinuxLib.dn_expand(pBuffer, end, pos, name, 256);
-                            if (size < 0) return null;
-                            pos += size + 4;
+                        // Question Section (read and ignore)
+                        while (qdCount-- > 0 && reader.OK())
+                        {
+                            string questionStr = reader.String();
+                            reader.Current += 4;   // skip 4 bytes
                         }
 
                         // Answers
-                        while (ancount-- > 0 && pos < end) {
-                            size = LinuxLib.dn_expand(pBuffer, end, pos, name, 256);
-                            if (size < 0) return null;
-
-                            pos += size;
-
-                            type = GETINT16(ref pos);
-                            cls = GETINT16(ref pos);
-                            ttl = GETINT32(ref pos);
-
-                            dlen = GETINT16(ref pos);
-
-                            if (type == (int)DnsRecordType.SRV) {
-                                priority = GETINT16(ref pos);
-                                weight = GETINT16(ref pos);
-                                port = GETINT16(ref pos);
-
-                                size = LinuxLib.dn_expand(pBuffer, end, pos, name, 256);
-                                if (size < 0) return null;
-
-                                string nameStr = null;
-                                fixed (byte* pName = name) {
-                                    nameStr = new String((sbyte*)pName);
-                                }
-
-                                records.Add(
-                                    new DnsServiceEntry(Query, nameStr, port, priority, weight, ttl)
-                                );
-
-                                pos += size;
-                            } else {
-                                pos += dlen;
-                            }
+                        while (anCount-- > 0 && reader.OK())
+                        {
+                            var ansHead = new LDnsHeader(reader);
+                            var dnsEntry = DnsEntry.Create(ansHead, reader);
+                            records.Add(dnsEntry);
                         }
                     }
                 }
@@ -117,39 +85,23 @@ namespace Unearth.Dns.Linux
             return Task.FromResult( _typeRecords );
         }
 
-        private unsafe static ushort GETINT16 (ref byte* buf)
-        {
-            byte *t_cp = (byte*)(buf);
-            ushort s = (ushort) (((ushort)t_cp[0] << 8) | ((ushort)t_cp[1]));
-            buf += sizeof(ushort);
-            return s;
-        }
-
-        private unsafe static uint GETINT32 (ref byte* buf)
-        {
-            byte *t_cp = (byte*)(buf);
-            uint s = (uint) (((uint)t_cp[0] << 24) | ((uint)t_cp[1] << 16) | ((uint)t_cp[2] << 8) | ((uint)t_cp[3]));
-            buf += sizeof(uint);
-            return s;
-        }
-
         [StructLayout(LayoutKind.Explicit)]
-        private struct HEADER
+        private struct DNS_RESPONSE_HEADER
         {
             /* The first 4 bytes are a bunch of random crap that
             * nobody cares about */
 
             [FieldOffset(4)]
-            public UInt16 qdcount; /* number of question entries */
+            public UInt16 qdCount; /* number of question entries */
 
             [FieldOffset(6)]
-            public UInt16 ancount; /* number of header entries */
+            public UInt16 anCount; /* number of header entries */
 
             [FieldOffset(8)]
-            public UInt16 nscount; /* number of authority entries */
+            public UInt16 nsCount; /* number of authority entries */
 
             [FieldOffset(10)]
-            public UInt16 arcount; /* number of resource entries */
+            public UInt16 arCount; /* number of resource entries */
         }
     }
 
@@ -162,15 +114,18 @@ namespace Unearth.Dns.Linux
         private static extern int linux_res_query (string dname, int cls, int type, byte[] header, int headerlen);
 
         [DllImport(LIBRESOLV, EntryPoint="__dn_expand")]
-        private unsafe static extern int linux_dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length);
+        private static extern int linux_dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length);
 
         [DllImport(LIBRESOLV, EntryPoint="res_query")]
         private static extern int bsd_res_query (string dname, int cls, int type, byte[] header, int headerlen);
 
         [DllImport(LIBRESOLV, EntryPoint="dn_expand")]
-        private unsafe static extern int bsd_dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length);
+        private static extern int bsd_dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length);
 
-        internal unsafe static int res_query (string dname, int cls, int type, byte[] header, int headerlen)
+        [DllImport(LIBC)]
+        internal static extern UInt16 ntohs(UInt16 netshort);
+
+        internal static int res_query (string dname, int cls, int type, byte[] header, int headerlen)
         {
             try {
                 return linux_res_query(dname, cls, type, header, headerlen);
@@ -179,7 +134,7 @@ namespace Unearth.Dns.Linux
             }
         }
 
-        internal unsafe static int dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length)
+        internal static int dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length)
         {
             try {
                 return linux_dn_expand(msg, endorig, comp_dn, exp_dn, length);
@@ -188,7 +143,72 @@ namespace Unearth.Dns.Linux
             }
         }
 
-        [DllImport(LIBC)]
-        internal static extern UInt16 ntohs(UInt16 netshort);
+    }
+
+    internal unsafe class LDnsReader
+    {
+        public byte* Buffer, End, Current;
+
+        public bool OK() => Current < End;
+
+        public UInt16 UInt16()
+        {
+            byte* t_cp = (byte*)(Current);
+            ushort s = (ushort)(((ushort)t_cp[0] << 8) | ((ushort)t_cp[1]));
+
+            Current += sizeof(ushort);
+
+            return s;
+        }
+
+        public UInt32 UInt32()
+        {
+            byte* t_cp = (byte*)(Current);
+            uint s = (uint)(((uint)t_cp[0] << 24) | ((uint)t_cp[1] << 16) | ((uint)t_cp[2] << 8) | ((uint)t_cp[3]));
+
+            Current += sizeof(uint);
+
+            return s;
+        }
+        public string String()
+        {
+            byte[] stringBuffer = new byte[256];
+            int len = LinuxLib.dn_expand(Buffer, End, Current, stringBuffer, stringBuffer.Length);
+            if (len < 0) return null;
+
+            Current += len;
+
+            fixed (byte* pStrData = stringBuffer)
+                return new String((sbyte*)pStrData);
+        }
+
+        public byte[] Bytes(int len)
+        {
+            var result = new byte[len];
+            for (int i = 0; i < len; i++)
+                result[i] = Current[i];
+
+            Current += len;
+
+            return result;
+        }
+    }
+
+    internal class LDnsHeader
+    {
+        public LDnsHeader(LDnsReader reader)
+        {
+            Name = reader.String();
+            Type = reader.UInt16();
+            Class = reader.UInt16();
+            TTL = reader.UInt32();
+            DataLen = reader.UInt16();
+        }
+
+        public string Name { get;  }
+        public UInt16 Type { get; }
+        public UInt32 TTL { get; }
+        public UInt16 Class { get; }
+        public UInt16 DataLen { get; }
     }
 }

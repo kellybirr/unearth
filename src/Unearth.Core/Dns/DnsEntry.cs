@@ -37,6 +37,31 @@ namespace Unearth.Dns
             }
         }
 
+#if (NETSTANDARD2_0)
+        internal static DnsEntry Create(Linux.LDnsHeader head, Linux.LDnsReader reader)
+        {
+            switch (head.Type)
+            {
+                case (ushort)DnsRecordType.A:
+                case (ushort)DnsRecordType.AAAA:
+                    return new DnsHostEntry(head, reader);
+                case (ushort)DnsRecordType.NS:
+                case (ushort)DnsRecordType.PTR:
+                case (ushort)DnsRecordType.CNAME:
+                    return new DnsPointerEntry(head, reader);
+                case (ushort)DnsRecordType.MX:
+                    return new DnsMailExchangeEntry(head, reader);
+                case (ushort)DnsRecordType.SRV:
+                    return new DnsServiceEntry(head, reader);
+                case (ushort)DnsRecordType.TXT:
+                    return new DnsTextEntry(head, reader);
+                default:
+                    //reader.Current += head.DataLen;
+                    throw new NotSupportedException();
+            }
+        }
+#endif
+
         internal DnsEntry(Win32.DNS_RECORD record)
         {
             Type = (DnsRecordType)record.Type;
@@ -46,14 +71,16 @@ namespace Unearth.Dns
             Expires = DateTime.UtcNow.Add(TimeToLive);
         }
 
-        internal DnsEntry(DnsRecordType type, string name, uint ttl)
+#if (NETSTANDARD2_0)
+        internal DnsEntry(Linux.LDnsHeader head)
         {
-            Type = type;
-            Name = name;
+            Type = (DnsRecordType)head.Type;
+            Name = head.Name;
 
-            TimeToLive = TimeSpan.FromSeconds(ttl);
+            TimeToLive = TimeSpan.FromSeconds(head.TTL);
             Expires = DateTime.UtcNow.Add(TimeToLive);            
         }
+#endif
 
         public DnsRecordType Type { get; }
 
@@ -85,6 +112,16 @@ namespace Unearth.Dns
                 : Win32.ConvertAAAAToIpAddress(data.AAAA);
         }
 
+#if (NETSTANDARD2_0)
+        internal DnsHostEntry(Linux.LDnsHeader head, Linux.LDnsReader reader) : base(head)
+        {
+            int byteCount = (head.Type == (ushort) DnsRecordType.AAAA) ? 16 : 4;
+            byte[] addrBytes = reader.Bytes(byteCount);
+
+            Address = new IPAddress(addrBytes);
+        }
+#endif
+
         public IPAddress Address { get; }
         public override string ToString()
         {
@@ -101,6 +138,15 @@ namespace Unearth.Dns
             Exchanger = Marshal.PtrToStringUni(data.NameExchange);
             Preference = data.Preference;
         }
+
+#if (NETSTANDARD2_0)
+        internal DnsMailExchangeEntry(Linux.LDnsHeader head, Linux.LDnsReader reader) : base(head)
+        {
+            // Read Order Matters
+            Preference = reader.UInt16();
+            Exchanger = reader.String();
+        }
+#endif
 
         public string Exchanger { get; }
 
@@ -133,6 +179,13 @@ namespace Unearth.Dns
             Target = Marshal.PtrToStringUni(data.NameHost);
         }
 
+#if (NETSTANDARD2_0)
+        internal DnsPointerEntry(Linux.LDnsHeader head, Linux.LDnsReader reader) : base(head)
+        {
+            Target = reader.String();
+        }
+#endif
+
         public string Target { get; }
 
         public override string ToString()
@@ -153,14 +206,16 @@ namespace Unearth.Dns
             Port = data.Port;
         }
 
-        internal DnsServiceEntry(string name, string host, int port, int priority, int weight, uint ttl)
-            : base(DnsRecordType.SRV, name, ttl)
+#if (NETSTANDARD2_0)
+        internal DnsServiceEntry(Linux.LDnsHeader head, Linux.LDnsReader reader) : base(head)
         {
-            Host = host;
-            Port = port;
-            Priority = priority;
-            Weight = weight;
+            // Read Order Matters
+            Priority = reader.UInt16();
+            Weight = reader.UInt16();
+            Port = reader.UInt16();
+            Host = reader.String();
         }
+#endif
 
         public string Host { get; }
 
@@ -204,6 +259,17 @@ namespace Unearth.Dns
             for (int i = 0; i < stringPointers.Length; i++)
                 Text[i] = Marshal.PtrToStringUni(stringPointers[i]);
         }
+
+#if (NETSTANDARD2_0)
+        internal DnsTextEntry(Linux.LDnsHeader head, Linux.LDnsReader reader) : base(head)
+        {
+            int count = reader.Bytes(1)[0];
+            Text = new string[count];
+
+            for (int i = 0; i < count; i++)
+                Text[i] = reader.String();
+        }
+#endif
 
         public string[] Text { get; }
 
