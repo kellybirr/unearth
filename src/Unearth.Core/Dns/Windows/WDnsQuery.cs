@@ -21,7 +21,7 @@ namespace Unearth.Dns.Windows
 
         private Timer _timer;
         private bool _timedOut;
-        private const int MAX_TIMEOUT = 8000;
+        private const int MAX_TIMEOUT = 10 * 1000;  // 10 sec
 
         public WDnsQuery(string query, DnsRecordType type)
         {
@@ -138,7 +138,7 @@ namespace Unearth.Dns.Windows
                 // check if timed out
                 if (_timedOut)
                 {
-                    _taskCompletion.SetCanceled();
+                    _taskCompletion.SetException(new DnsTimeoutException(Query));
                     return;
                 }
 

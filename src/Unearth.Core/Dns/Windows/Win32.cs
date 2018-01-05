@@ -222,22 +222,22 @@ namespace Unearth.Dns.Windows
         internal static IPAddress ConvertAAAAToIpAddress(DNS_AAAA_DATA data)
         {
             var addressBytes = new byte[16];
-            addressBytes[0] = (byte)(data.Ip6Address0 & 0x000000FF);
-            addressBytes[1] = (byte)((data.Ip6Address0 & 0x0000FF00) >> 8);
-            addressBytes[2] = (byte)((data.Ip6Address0 & 0x00FF0000) >> 16);
-            addressBytes[3] = (byte)((data.Ip6Address0 & 0xFF000000) >> 24);
-            addressBytes[4] = (byte)(data.Ip6Address1 & 0x000000FF);
-            addressBytes[5] = (byte)((data.Ip6Address1 & 0x0000FF00) >> 8);
-            addressBytes[6] = (byte)((data.Ip6Address1 & 0x00FF0000) >> 16);
-            addressBytes[7] = (byte)((data.Ip6Address1 & 0xFF000000) >> 24);
-            addressBytes[8] = (byte)(data.Ip6Address2 & 0x000000FF);
-            addressBytes[9] = (byte)((data.Ip6Address2 & 0x0000FF00) >> 8);
-            addressBytes[10] = (byte)((data.Ip6Address2 & 0x00FF0000) >> 16);
-            addressBytes[11] = (byte)((data.Ip6Address2 & 0xFF000000) >> 24);
-            addressBytes[12] = (byte)(data.Ip6Address3 & 0x000000FF);
-            addressBytes[13] = (byte)((data.Ip6Address3 & 0x0000FF00) >> 8);
-            addressBytes[14] = (byte)((data.Ip6Address3 & 0x00FF0000) >> 16);
-            addressBytes[15] = (byte)((data.Ip6Address3 & 0xFF000000) >> 24);
+            addressBytes[0] = (byte)(data.Ip6Address0 & 0x000000FFu);
+            addressBytes[1] = (byte)((data.Ip6Address0 & 0x0000FF00u) >> 8);
+            addressBytes[2] = (byte)((data.Ip6Address0 & 0x00FF0000u) >> 16);
+            addressBytes[3] = (byte)((data.Ip6Address0 & 0xFF000000u) >> 24);
+            addressBytes[4] = (byte)(data.Ip6Address1 & 0x000000FFu);
+            addressBytes[5] = (byte)((data.Ip6Address1 & 0x0000FF00u) >> 8);
+            addressBytes[6] = (byte)((data.Ip6Address1 & 0x00FF0000u) >> 16);
+            addressBytes[7] = (byte)((data.Ip6Address1 & 0xFF000000u) >> 24);
+            addressBytes[8] = (byte)(data.Ip6Address2 & 0x000000FFu);
+            addressBytes[9] = (byte)((data.Ip6Address2 & 0x0000FF00u) >> 8);
+            addressBytes[10] = (byte)((data.Ip6Address2 & 0x00FF0000u) >> 16);
+            addressBytes[11] = (byte)((data.Ip6Address2 & 0xFF000000u) >> 24);
+            addressBytes[12] = (byte)(data.Ip6Address3 & 0x000000FFu);
+            addressBytes[13] = (byte)((data.Ip6Address3 & 0x0000FF00u) >> 8);
+            addressBytes[14] = (byte)((data.Ip6Address3 & 0x00FF0000u) >> 16);
+            addressBytes[15] = (byte)((data.Ip6Address3 & 0xFF000000u) >> 24);
 
             return new IPAddress(addressBytes);
         }

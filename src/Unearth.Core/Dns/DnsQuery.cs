@@ -109,4 +109,10 @@ namespace Unearth.Dns
         public DnsResolveException(string query) : base($"`{query}` not found")
         { }
     }
+
+    public class DnsTimeoutException : Exception
+    {
+        public DnsTimeoutException(string query) : base($"`{query}` lookup timed out")
+        { }
+    }
 }
