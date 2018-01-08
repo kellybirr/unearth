@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -32,23 +33,25 @@ namespace Unearth.Dns.Linux
             }
         }
 
-        public Task<DnsEntry[]> TryResolve()
+        public unsafe Task<DnsEntry[]> TryResolve()
         {
             var records = new List<DnsEntry>();
 
             byte[] dataBuffer = new byte[1024];
             int dataLen = LinuxLib.res_query(Query, C_IN, (int)Type, dataBuffer, dataBuffer.Length);
 
-            GCHandle handle = GCHandle.Alloc(dataBuffer, GCHandleType.Pinned);
+            if (dataLen > 0) 
+            {
+                GCHandle handle = GCHandle.Alloc(dataBuffer, GCHandleType.Pinned);
 
-            try {
-                var responseHeader = Marshal.PtrToStructure<DNS_RESPONSE_HEADER>(handle.AddrOfPinnedObject());
-                int headerSize = Marshal.SizeOf(responseHeader);
+                try 
+                {
+                    var responseHeader = Marshal.PtrToStructure<DNS_RESPONSE_HEADER>(handle.AddrOfPinnedObject());
+                    int headerSize = Marshal.SizeOf(responseHeader);
 
-                int qdCount = LinuxLib.ntohs(responseHeader.qdCount);
-                int anCount = LinuxLib.ntohs(responseHeader.anCount);
+                    int qdCount = LinuxLib.ntohs(responseHeader.qdCount);
+                    int anCount = LinuxLib.ntohs(responseHeader.anCount);
 
-                unsafe {
                     fixed (byte* pBuffer = dataBuffer)
                     {
                         var reader = new LDnsReader
@@ -59,28 +62,34 @@ namespace Unearth.Dns.Linux
                         };
 
                         // Question Section (read and ignore)
-                        while (qdCount-- > 0 && reader.OK())
+                        for (int q = 0; q < qdCount && reader.OK(); q++)
                         {
-                            string questionStr = reader.String();
-                            reader.Current += 4;   // skip 4 bytes
+                            string qName = reader.Name();
+                            ushort qType = reader.UInt16();
+                            ushort qClass = reader.UInt16();
                         }
 
-                        // Answers
-                        while (anCount-- > 0 && reader.OK())
+                        // Answers (the good stuf)
+                        for (int a = 0; a < anCount && reader.OK(); a++)
                         {
                             var ansHead = new LDnsHeader(reader);
-                            var dnsEntry = DnsEntry.Create(ansHead, reader);
+                            DnsEntry dnsEntry = DnsEntry.Create(ansHead, reader);
+
                             records.Add(dnsEntry);
                         }
                     }
+                } 
+                finally 
+                {
+                    handle.Free();
                 }
-
-            } finally {
-                handle.Free();
             }
 
             _allRecords = records.ToArray();
-            _typeRecords = records.ToArray();
+            _typeRecords = records.Where(r => r.Type == Type).ToArray();
+
+            if (Type == DnsRecordType.SRV || Type == DnsRecordType.MX)    // sort
+                _typeRecords = _typeRecords.OrderBy(r => ((IOrderedDnsEntry)r).SortOrder).ToArray();
 
             return Task.FromResult( _typeRecords );
         }
@@ -170,7 +179,8 @@ namespace Unearth.Dns.Linux
 
             return s;
         }
-        public string String()
+
+        public string Name()
         {
             byte[] stringBuffer = new byte[256];
             int len = LinuxLib.dn_expand(Buffer, End, Current, stringBuffer, stringBuffer.Length);
@@ -181,6 +191,16 @@ namespace Unearth.Dns.Linux
             fixed (byte* pStrData = stringBuffer)
                 return new String((sbyte*)pStrData);
         }
+
+        public string Text(int len)
+        {
+            var txt = new String((sbyte*)Current, 0, len);
+
+            Current += len;
+
+            return txt;                
+        }
+
 
         public byte[] Bytes(int len)
         {
@@ -198,7 +218,7 @@ namespace Unearth.Dns.Linux
     {
         public LDnsHeader(LDnsReader reader)
         {
-            Name = reader.String();
+            Name = reader.Name();
             Type = reader.UInt16();
             Class = reader.UInt16();
             TTL = reader.UInt32();

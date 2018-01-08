@@ -115,7 +115,7 @@ namespace Unearth.Dns
 #if (NETSTANDARD2_0)
         internal DnsHostEntry(Linux.LDnsHeader head, Linux.LDnsReader reader) : base(head)
         {
-            int byteCount = (head.Type == (ushort) DnsRecordType.AAAA) ? 16 : 4;
+            int byteCount = (Type == DnsRecordType.AAAA) ? 16 : 4;
             byte[] addrBytes = reader.Bytes(byteCount);
 
             Address = new IPAddress(addrBytes);
@@ -144,7 +144,7 @@ namespace Unearth.Dns
         {
             // Read Order Matters
             Preference = reader.UInt16();
-            Exchanger = reader.String();
+            Exchanger = reader.Name();
         }
 #endif
 
@@ -182,7 +182,7 @@ namespace Unearth.Dns
 #if (NETSTANDARD2_0)
         internal DnsPointerEntry(Linux.LDnsHeader head, Linux.LDnsReader reader) : base(head)
         {
-            Target = reader.String();
+            Target = reader.Name();
         }
 #endif
 
@@ -213,7 +213,7 @@ namespace Unearth.Dns
             Priority = reader.UInt16();
             Weight = reader.UInt16();
             Port = reader.UInt16();
-            Host = reader.String();
+            Host = reader.Name();
         }
 #endif
 
@@ -261,13 +261,22 @@ namespace Unearth.Dns
         }
 
 #if (NETSTANDARD2_0)
-        internal DnsTextEntry(Linux.LDnsHeader head, Linux.LDnsReader reader) : base(head)
+        internal unsafe DnsTextEntry(Linux.LDnsHeader head, Linux.LDnsReader reader) : base(head)
         {
-            int count = reader.Bytes(1)[0];
-            Text = new string[count];
+            var strings = new List<String>();
 
-            for (int i = 0; i < count; i++)
-                Text[i] = reader.String();
+            byte* pDataEnd = reader.Current + head.DataLen;
+            while (reader.Current < pDataEnd)
+            {
+                byte strLen = reader.Bytes(1)[0];
+                if (strLen > 0) 
+                {
+                    string s = reader.Text(strLen);
+                    strings.Add(s);
+                }                    
+            }
+
+            Text = strings.ToArray();
         }
 #endif
 

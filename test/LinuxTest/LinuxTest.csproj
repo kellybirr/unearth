@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Unearth.Core\Unearth.Core.csproj" />
+    <ProjectReference Include="..\..\src\Unearth.Common\Unearth.Common.csproj" />
   </ItemGroup>
 
 </Project>
