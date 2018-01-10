@@ -4,9 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Unearth</RootNamespace>
     <AssemblyName>Unearth</AssemblyName>
-    <AssemblyVersion>1.3.2.500</AssemblyVersion>
-    <FileVersion>1.3.2.500</FileVersion>
-    <Version>1.3.2</Version>
+    <AssemblyVersion>1.5.0.600</AssemblyVersion>
+    <FileVersion>1.5.0.600</FileVersion>
+    <Version>1.5.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
