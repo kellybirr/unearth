@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -27,12 +28,12 @@ namespace Unearth.Dns.Linux
         {
             get
             {
-                //if (_timedOut) return DnsQueryStatus.Timeout;
                 if (_typeRecords == null) return DnsQueryStatus.Unknown;
                 return (_typeRecords.Length > 0) ? DnsQueryStatus.Found : DnsQueryStatus.NotFound;
             }
         }
 
+        [SuppressMessage("ReSharper", "UnusedVariable")]
         public unsafe Task<DnsEntry[]> TryResolve()
         {
             var records = new List<DnsEntry>();
@@ -46,20 +47,24 @@ namespace Unearth.Dns.Linux
 
                 try 
                 {
-                    var responseHeader = Marshal.PtrToStructure<DNS_RESPONSE_HEADER>(handle.AddrOfPinnedObject());
-                    int headerSize = Marshal.SizeOf(responseHeader);
-
-                    int qdCount = LinuxLib.ntohs(responseHeader.qdCount);
-                    int anCount = LinuxLib.ntohs(responseHeader.anCount);
-
                     fixed (byte* pBuffer = dataBuffer)
                     {
                         var reader = new LDnsReader
                         {
                             Buffer = pBuffer,
-                            Current = pBuffer + headerSize,
+                            Current = pBuffer,
                             End = pBuffer + dataLen
                         };
+
+                        // Response Header
+                        int queryId = reader.UInt16();  // Query Identifier (Read & Ignore)
+                        byte[] hBits = reader.Bytes(2); // Header Bits & Flags (Read & Ignore)
+
+                        int qdCount = reader.UInt16();  // Question Count (Use Below)
+                        int anCount = reader.UInt16();  // Answer Count (Use Below)
+
+                        int nsCount = reader.UInt16();  // NameServer Count (Read & Ignore)
+                        int arCount = reader.UInt16();  // Resource Count (Read & Ignore)
 
                         // Question Section (read and ignore)
                         for (int q = 0; q < qdCount && reader.OK(); q++)
@@ -69,7 +74,7 @@ namespace Unearth.Dns.Linux
                             ushort qClass = reader.UInt16();
                         }
 
-                        // Answers (the good stuf)
+                        // Answers (the good stuff)
                         for (int a = 0; a < anCount && reader.OK(); a++)
                         {
                             var ansHead = new LDnsHeader(reader);
@@ -93,27 +98,9 @@ namespace Unearth.Dns.Linux
 
             return Task.FromResult( _typeRecords );
         }
-
-        [StructLayout(LayoutKind.Explicit)]
-        private struct DNS_RESPONSE_HEADER
-        {
-            /* The first 4 bytes are a bunch of random crap that
-            * nobody cares about */
-
-            [FieldOffset(4)]
-            public UInt16 qdCount; /* number of question entries */
-
-            [FieldOffset(6)]
-            public UInt16 anCount; /* number of header entries */
-
-            [FieldOffset(8)]
-            public UInt16 nsCount; /* number of authority entries */
-
-            [FieldOffset(10)]
-            public UInt16 arCount; /* number of resource entries */
-        }
     }
 
+#pragma warning disable IDE1006 // Naming Styles
     internal static unsafe class LinuxLib 
     {
         private const string LIBRESOLV = "libresolv.so.2";
@@ -132,7 +119,10 @@ namespace Unearth.Dns.Linux
         private static extern int bsd_dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length);
 
         [DllImport(LIBC)]
-        internal static extern UInt16 ntohs(UInt16 netshort);
+        internal static extern UInt16 ntohs(UInt16 netValue);
+
+        [DllImport(LIBC)]
+        internal static extern UInt32 ntohl(UInt32 netValue);
 
         internal static int res_query (string dname, int cls, int type, byte[] header, int headerlen)
         {
@@ -153,6 +143,7 @@ namespace Unearth.Dns.Linux
         }
 
     }
+#pragma warning restore IDE1006 // Naming Styles
 
     internal unsafe class LDnsReader
     {
@@ -160,24 +151,32 @@ namespace Unearth.Dns.Linux
 
         public bool OK() => Current < End;
 
+        public void Skip(int bytes) => Current += bytes;
+
         public UInt16 UInt16()
         {
-            byte* t_cp = (byte*)(Current);
-            ushort s = (ushort)(((ushort)t_cp[0] << 8) | ((ushort)t_cp[1]));
+            ushort netValue = ((ushort*)Current)[0];
+            ushort hostValue = LinuxLib.ntohs(netValue);
+
+            //byte* t_cp = (byte*)(Current);
+            //ushort s = (ushort)(((ushort)t_cp[0] << 8) | ((ushort)t_cp[1]));
 
             Current += sizeof(ushort);
 
-            return s;
+            return hostValue;
         }
 
         public UInt32 UInt32()
         {
-            byte* t_cp = (byte*)(Current);
-            uint s = (uint)(((uint)t_cp[0] << 24) | ((uint)t_cp[1] << 16) | ((uint)t_cp[2] << 8) | ((uint)t_cp[3]));
+            uint netValue = ((uint*)Current)[0];
+            uint hostValue = LinuxLib.ntohl(netValue);
+
+            //byte* t_cp = (byte*)(Current);
+            //uint s = (uint)(((uint)t_cp[0] << 24) | ((uint)t_cp[1] << 16) | ((uint)t_cp[2] << 8) | ((uint)t_cp[3]));
 
             Current += sizeof(uint);
 
-            return s;
+            return hostValue;
         }
 
         public string Name()
