@@ -37,15 +37,12 @@ namespace Unearth.Grpc
             };
 
             // actual lookup function
-            SrvLookup<GrpcService> locateFunc(string k)
-            {
-                return (_noText)
-                    ? ServiceLookup.Srv(name, GrpcServiceFactory)
-                    : ServiceLookup.SrvTxt(name, GrpcServiceFactory);
-            }
+            GrpcServiceLookup serviceLookup = _noText
+                ? new GrpcServiceLookup {Name = name}
+                : new GrpcServiceLookupWithText {Name = name};
 
             // preform lookup and return
-            return Locate(name, locateFunc);
+            return Locate(name, serviceLookup.LocateFunction);
         }
 
         public async Task<GrpcService> Locate(string serviceName, ChannelCredentials credentials)
@@ -56,9 +53,27 @@ namespace Unearth.Grpc
             return service;
         }
 
-        private static GrpcService GrpcServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
+        private class GrpcServiceLookup
         {
-            return new GrpcService(dnsEntries) { Name = name.ServiceName };
+            internal ServiceDnsName Name { get; set; }
+
+            internal virtual SrvLookup<GrpcService> LocateFunction(string dnsName)
+            {
+                return ServiceLookup.Srv(Name, GrpcServiceFactory);
+            }
+
+            protected GrpcService GrpcServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
+            {
+                return new GrpcService(dnsEntries) { Name = name.ServiceName };
+            }
+        }
+
+        private class GrpcServiceLookupWithText : GrpcServiceLookup
+        {
+            internal override SrvLookup<GrpcService> LocateFunction(string dnsName)
+            {
+                return ServiceLookup.SrvTxt(Name, GrpcServiceFactory);
+            }
         }
     }
 }

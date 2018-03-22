@@ -54,9 +54,10 @@ namespace Unearth.Core
 
                 try
                 {
-                    service = (NoCache)
-                        ? await LocateNow(name, locateFunc).ConfigureAwait(false)
-                        : await LocateCached(name, locateFunc).ConfigureAwait(false);
+                    Task<TService> serviceTask = (NoCache)
+                        ? LocateNow(name, locateFunc) : LocateCached(name, locateFunc);
+
+                    service = await serviceTask.ConfigureAwait(false);
                 }
                 catch (DnsResolveException dex)
                 {
@@ -73,7 +74,9 @@ namespace Unearth.Core
 
         private async Task<TService> LocateNow(ServiceDnsName name, SrvLookupFunction<TService> locateFunc)
         {
-            Func<TService> factory = await locateFunc(name.DnsName).Task;
+            Task<Func<TService>> factoryTask = locateFunc(name.DnsName).Task;
+            Func<TService> factory = await factoryTask.ConfigureAwait(false);
+
             return factory.Invoke();
         }
 
@@ -83,7 +86,7 @@ namespace Unearth.Core
             {
                 // get lookup and factory
                 SrvLookup<TService> cachedLookup = Cache.GetOrAdd(name.DnsName, locateFunc);
-                Func<TService> factory = await cachedLookup.Task;
+                Func<TService> factory = await cachedLookup.Task.ConfigureAwait(false);
 
                 // check cache & expire time
                 TService service = factory.Invoke();

@@ -37,6 +37,8 @@ namespace Unearth.Core
 
         public virtual Task<Func<TService>> Task => Completion.Task;
 
+        private bool _started;
+
         public SrvLookup(ServiceDnsName name, ServiceFactory<TService> factory)
         {
             Name = name;
@@ -49,6 +51,8 @@ namespace Unearth.Core
 
         public virtual SrvLookup<TService> Start()
         {
+            if (RunOnce) return this;
+
             // Query DNS servers
             SrvQuery.Resolve().ContinueWith(t =>
             {
@@ -65,6 +69,23 @@ namespace Unearth.Core
 
             return this;
         }
+
+        protected bool RunOnce
+        {
+            get
+            {
+                lock (this)
+                {
+                    if (! _started)
+                    {
+                        _started = true;
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+        }
     }
 
     public class SrvTxtLookup<TService> : SrvLookup<TService>
@@ -79,6 +100,8 @@ namespace Unearth.Core
 
         public override SrvLookup<TService> Start()
         {
+            if (RunOnce) return this;
+
             // Query DNS servers (SRV Required, TXT Optional)
             var tasks = new[] { SrvQuery.Resolve(), TxtQuery.TryResolve() };
             CTask.WhenAll(tasks).ContinueWith(t =>
@@ -110,6 +133,8 @@ namespace Unearth.Core
 
         public override SrvLookup<TService> Start()
         {
+            if (RunOnce) return this;
+
             // try to resolve - optional
             TxtQuery.TryResolve().ContinueWith(t =>
             {

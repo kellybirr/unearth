@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.Core" Version="1.7.3" />
+    <PackageReference Include="Grpc.Core" Version="1.10.0" />
   </ItemGroup>
 
   <ItemGroup>

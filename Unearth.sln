@@ -42,6 +42,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unearth.Common", "src\Unear
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unearth.Common.Fx", "src\Unearth.Common.Fx\Unearth.Common.Fx.csproj", "{2F769958-8093-4D86-9614-885AE1DBDD58}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWeb.Fx", "test\TestWeb.Fx\TestWeb.Fx.csproj", "{83A8DC4C-C9E4-4C30-93D5-5029DA266A7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +90,10 @@ Global
 		{2F769958-8093-4D86-9614-885AE1DBDD58}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F769958-8093-4D86-9614-885AE1DBDD58}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F769958-8093-4D86-9614-885AE1DBDD58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83A8DC4C-C9E4-4C30-93D5-5029DA266A7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83A8DC4C-C9E4-4C30-93D5-5029DA266A7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83A8DC4C-C9E4-4C30-93D5-5029DA266A7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83A8DC4C-C9E4-4C30-93D5-5029DA266A7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
