@@ -6,6 +6,8 @@ namespace Unearth.Core
 {
     public abstract class ServiceLocator<TService> where TService : class, IServiceInfo
     {
+        private delegate Task<TService> LocateDelegate(ServiceDnsName name, SrvLookupFunction<TService> locateFunc);
+
         protected ServiceLocator()
         {
             _serviceDomain = Environment.GetEnvironmentVariable("SERVICE_DOMAIN");
@@ -44,20 +46,20 @@ namespace Unearth.Core
         {
             const int MAX_TRIES = 4, WAIT_AFTER = 2;
 
+            await new SynchronizationContextRemover();
+
             int trys = 0; // max retries
             TService service = null;
             DnsResolveException lastException = null;
             while (service == null && ++trys <= MAX_TRIES)
             {
                 if (trys > WAIT_AFTER) // Wait 1 sec
-                    await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromSeconds(1));
 
                 try
                 {
-                    Task<TService> serviceTask = (NoCache)
-                        ? LocateNow(name, locateFunc) : LocateCached(name, locateFunc);
-
-                    service = await serviceTask.ConfigureAwait(false);
+                    LocateDelegate locator = (NoCache) ? (LocateDelegate)LocateNow : LocateCached;
+                    service = await locator(name, locateFunc);
                 }
                 catch (DnsResolveException dex)
                 {
@@ -75,7 +77,7 @@ namespace Unearth.Core
         private async Task<TService> LocateNow(ServiceDnsName name, SrvLookupFunction<TService> locateFunc)
         {
             Task<Func<TService>> factoryTask = locateFunc(name.DnsName).Task;
-            Func<TService> factory = await factoryTask.ConfigureAwait(false);
+            Func<TService> factory = await factoryTask;
 
             return factory.Invoke();
         }
@@ -86,7 +88,7 @@ namespace Unearth.Core
             {
                 // get lookup and factory
                 SrvLookup<TService> cachedLookup = Cache.GetOrAdd(name.DnsName, locateFunc);
-                Func<TService> factory = await cachedLookup.Task.ConfigureAwait(false);
+                Func<TService> factory = await cachedLookup.Task;
 
                 // check cache & expire time
                 TService service = factory.Invoke();
@@ -105,6 +107,6 @@ namespace Unearth.Core
                 Cache.Remove(name.DnsName);
                 throw;
             }
-        }
+        }        
     }
 }

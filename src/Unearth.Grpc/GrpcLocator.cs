@@ -38,8 +38,8 @@ namespace Unearth.Grpc
 
             // actual lookup function
             GrpcServiceLookup serviceLookup = _noText
-                ? new GrpcServiceLookup {Name = name}
-                : new GrpcServiceLookupWithText {Name = name};
+                ? new GrpcServiceLookup(name)
+                : new GrpcServiceLookupWithText(name);
 
             // preform lookup and return
             return Locate(name, serviceLookup.LocateFunction);
@@ -47,7 +47,9 @@ namespace Unearth.Grpc
 
         public async Task<GrpcService> Locate(string serviceName, ChannelCredentials credentials)
         {
-            GrpcService service = await Locate(serviceName).ConfigureAwait(false);
+            await new SynchronizationContextRemover();
+
+            GrpcService service = await Locate(serviceName);
             service.Credentials = credentials;
 
             return service;
@@ -55,7 +57,12 @@ namespace Unearth.Grpc
 
         private class GrpcServiceLookup
         {
-            internal ServiceDnsName Name { get; set; }
+            internal GrpcServiceLookup(ServiceDnsName name)
+            {
+                Name = name;
+            }
+
+            protected ServiceDnsName Name { get; }
 
             internal virtual SrvLookup<GrpcService> LocateFunction(string dnsName)
             {
@@ -70,6 +77,9 @@ namespace Unearth.Grpc
 
         private class GrpcServiceLookupWithText : GrpcServiceLookup
         {
+            internal GrpcServiceLookupWithText(ServiceDnsName name) : base(name)
+            { }
+
             internal override SrvLookup<GrpcService> LocateFunction(string dnsName)
             {
                 return ServiceLookup.SrvTxt(Name, GrpcServiceFactory);

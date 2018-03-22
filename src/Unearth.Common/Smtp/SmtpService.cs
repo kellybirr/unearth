@@ -39,13 +39,15 @@ namespace Unearth.Smtp
 
         public async Task SendMail(MailMessage message)
         {
+            await new SynchronizationContextRemover();
+
             var exceptions = new List<Exception>();
             foreach (ServiceEndpoint ep in Endpoints)
             {
                 try
                 {
                     var smtpClient = new SmtpClient(ep.Host, ep.Port) { Credentials = Credentials };
-                    await smtpClient.SendMailAsync(message).ConfigureAwait(false);
+                    await smtpClient.SendMailAsync(message);
 
                     return;
                 }

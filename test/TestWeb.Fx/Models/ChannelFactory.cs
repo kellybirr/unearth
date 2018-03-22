@@ -22,7 +22,7 @@ namespace TestWeb.Fx.Models
             {
                 if (hostName[0] == '@')
                 {
-                    GrpcService service = await _locator.Locate(hostName.Substring(1), ChannelCredentials.Insecure).ConfigureAwait(false);
+                    GrpcService service = await _locator.Locate(hostName.Substring(1), ChannelCredentials.Insecure);
                     return await service.Connect(TimeSpan.FromSeconds(2));
                 }
 

@@ -4,6 +4,10 @@ using System.Threading;
 
 namespace Unearth
 {
+    /// <summary>
+    /// Kills Synchronization Context to prevent ASP.NET Deadlocks
+    /// usage: await new SynchronizationContextRemover()
+    /// </summary>
     public struct SynchronizationContextRemover : INotifyCompletion
     {
         public bool IsCompleted => SynchronizationContext.Current == null;

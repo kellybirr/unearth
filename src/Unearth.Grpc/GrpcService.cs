@@ -28,6 +28,8 @@ namespace Unearth.Grpc
 
         public async Task<Channel> Connect(TimeSpan timeout)
         {
+            await new SynchronizationContextRemover();
+
             if (Endpoints == null || Endpoints.Count == 0)
                 throw new IndexOutOfRangeException("No Endpoints Specified");
 
@@ -40,7 +42,7 @@ namespace Unearth.Grpc
 
                     DateTime timeoutUtc = DateTime.UtcNow.Add(timeout);
                     Task connectTask = channel.ConnectAsync(timeoutUtc);
-                    await connectTask.ConfigureAwait(false);
+                    await connectTask;
 
                     if (connectTask.IsCompleted && channel.State == ChannelState.Ready)
                         return channel;
@@ -57,6 +59,8 @@ namespace Unearth.Grpc
 
         public async Task<Channel[]> ConnectAll(TimeSpan timeout)
         {
+            await new SynchronizationContextRemover();
+
             var tasks = new Task[Endpoints.Count];
             var channels = new List<Channel>();
             var exceptions = new List<Exception>();
@@ -81,7 +85,7 @@ namespace Unearth.Grpc
             }
 
             // await all tasks
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Task.WhenAll(tasks);
 
            // return open channels
             if (channels.Count > 0)
@@ -93,6 +97,8 @@ namespace Unearth.Grpc
 
         public async Task Execute(Func<Channel, Task> action, TimeSpan connectTimeout)
         {
+            await new SynchronizationContextRemover();
+
             Channel channel = null;
             try
             {
@@ -108,6 +114,8 @@ namespace Unearth.Grpc
 
         public async Task<TResult> Execute<TResult>(Func<Channel, Task<TResult>> action, TimeSpan connectTimeout)
         {
+            await new SynchronizationContextRemover();
+
             Channel channel = null;
             try
             {

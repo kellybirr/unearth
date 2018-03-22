@@ -37,12 +37,16 @@ namespace Unearth.Dns
 
         public async Task<DnsEntry[]> TryResolve()
         {
-            return await _dns.TryResolve().ConfigureAwait(false);
+            await new SynchronizationContextRemover();
+
+            return await _dns.TryResolve();
         }
 
         public async Task<DnsEntry[]> Resolve()
         {
-            var res = await _dns.TryResolve().ConfigureAwait(false);
+            await new SynchronizationContextRemover();
+
+            var res = await _dns.TryResolve();
 
             if (res?.Length == 0)
                 throw new DnsResolveException(Query);
