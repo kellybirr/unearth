@@ -4,9 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Unearth</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>1.6.0.900</AssemblyVersion>
-    <FileVersion>1.6.0.900</FileVersion>
-    <Version>1.6.0.900</Version>
+    <AssemblyVersion>1.7.0.950</AssemblyVersion>
+    <FileVersion>1.7.0.950</FileVersion>
+    <Version>1.7.0.950</Version>
   </PropertyGroup>
 
   <ItemGroup>
