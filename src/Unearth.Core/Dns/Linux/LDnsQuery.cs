@@ -103,20 +103,29 @@ namespace Unearth.Dns.Linux
 #pragma warning disable IDE1006 // Naming Styles
     internal static unsafe class LinuxLib 
     {
-        private const string LIBRESOLV = "libresolv.so.2";
+        private const string BSD_LIBRESOLV = "libresolv";
+        private const string LINUX_LIBRESOLV = "libresolv.so.2";
+        private const string OSX_LIBRESOLV = "libresolv.9.dylib";
+
         private const string LIBC = "libc";
 
-        [DllImport(LIBRESOLV, EntryPoint="__res_query")]
+        [DllImport(LINUX_LIBRESOLV, EntryPoint="__res_query")]
         private static extern int linux_res_query (string dname, int cls, int type, byte[] header, int headerlen);
 
-        [DllImport(LIBRESOLV, EntryPoint="__dn_expand")]
+        [DllImport(LINUX_LIBRESOLV, EntryPoint="__dn_expand")]
         private static extern int linux_dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length);
 
-        [DllImport(LIBRESOLV, EntryPoint="res_query")]
+        [DllImport(BSD_LIBRESOLV, EntryPoint="res_query")]
         private static extern int bsd_res_query (string dname, int cls, int type, byte[] header, int headerlen);
 
-        [DllImport(LIBRESOLV, EntryPoint="dn_expand")]
+        [DllImport(BSD_LIBRESOLV, EntryPoint="dn_expand")]
         private static extern int bsd_dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length);
+
+        [DllImport(OSX_LIBRESOLV, EntryPoint = "res_query")]
+        private static extern int osx_res_query(string dname, int cls, int type, byte[] header, int headerlen);
+
+        [DllImport(OSX_LIBRESOLV, EntryPoint = "dn_expand")]
+        private static extern int osx_dn_expand(byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length);
 
         [DllImport(LIBC)]
         internal static extern UInt16 ntohs(UInt16 netValue);
@@ -126,18 +135,30 @@ namespace Unearth.Dns.Linux
 
         internal static int res_query (string dname, int cls, int type, byte[] header, int headerlen)
         {
-            try {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))    // OSX
+                return osx_res_query(dname, cls, type, header, headerlen);
+            
+            try
+            {   // LINUX
                 return linux_res_query(dname, cls, type, header, headerlen);
-            } catch (EntryPointNotFoundException) {
+            }
+            catch (EntryPointNotFoundException)
+            {   // BSD?
                 return bsd_res_query(dname, cls, type, header, headerlen);
             }
         }
 
         internal static int dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length)
         {
-            try {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))    // OSX
+                return osx_dn_expand(msg, endorig, comp_dn, exp_dn, length);
+
+            try
+            {   // LINUX
                 return linux_dn_expand(msg, endorig, comp_dn, exp_dn, length);
-            } catch (EntryPointNotFoundException) {
+            }
+            catch (EntryPointNotFoundException)
+            {   // BSD?
                 return bsd_dn_expand(msg, endorig, comp_dn, exp_dn, length);
             }
         }
