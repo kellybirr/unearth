@@ -44,8 +44,10 @@ namespace Unearth.Database
             return Locate(name, _ => ServiceLookup.SrvTxt(name, DbServiceFactory));
         }
 
-        private static DatabaseService DbServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
+        private DatabaseService DbServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
         {
+            ApplyDnsRandomizer(ref dnsEntries);
+
             return new DatabaseService(dnsEntries)
             {
                 Name = name.ServiceName,

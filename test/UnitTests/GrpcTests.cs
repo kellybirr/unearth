@@ -13,18 +13,18 @@ namespace ServiceResolver.UnitTests
         [TestMethod]
         public async Task GrpcService_A_Test()
         {
-            var locator = new GrpcLocator();
+            var locator = new GrpcLocator {NoCache = true, Randomize = true};
             Console.WriteLine("Testing in {0}", locator.ServiceDomain);
 
             GrpcService svc = await locator.Locate("onumbers", ChannelCredentials.Insecure);
 
             Assert.IsNotNull(svc);
-            Assert.AreEqual(3, svc.Endpoints.Count);
+            Assert.AreEqual(5, svc.Endpoints.Count);
 
             foreach (GrpcEndpoint ep in svc.Endpoints)
                 Console.WriteLine(ep);
 
-            Assert.AreEqual("vrdswarm11.rnd.ipzo.net:7006", svc.Endpoints[0].ToString());
+            //Assert.AreEqual("vrdswarm11.rnd.ipzo.net:7006", svc.Endpoints[0].ToString());
             Assert.IsTrue(svc.Expires < DateTime.UtcNow.AddMinutes(1));
         }
 

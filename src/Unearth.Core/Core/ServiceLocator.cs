@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Unearth.Dns;
 
@@ -39,6 +41,8 @@ namespace Unearth.Core
             }
         }
         private bool _noCache;
+
+        public bool Randomize { get; set; }
 
         public abstract Task<TService> Locate(string serviceName);
 
@@ -107,6 +111,12 @@ namespace Unearth.Core
                 Cache.Remove(name.DnsName);
                 throw;
             }
-        }        
+        }
+
+        protected void ApplyDnsRandomizer(ref IEnumerable<DnsEntry> dnsEntries)
+        {            
+            if (Randomize)  // re-sort psudo-randomly, honoring preference/priority
+                dnsEntries = dnsEntries.OrderBy(e => (e as IOrderedDnsEntry)?.Randomizer);
+        }
     }
 }

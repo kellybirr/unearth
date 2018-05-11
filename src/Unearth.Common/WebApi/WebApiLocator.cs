@@ -27,8 +27,10 @@ namespace Unearth.WebApi
             return Locate(name, _ => ServiceLookup.SrvTxt(name, WebApiServiceFactory));
         }
 
-        private static WebApiService WebApiServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
+        private WebApiService WebApiServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
         {
+            ApplyDnsRandomizer(ref dnsEntries);
+
             return new WebApiService(dnsEntries)
             {
                 Name = name.ServiceName,

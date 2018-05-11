@@ -34,8 +34,10 @@ namespace Unearth.Kafka
             return Locate(name, _ => ServiceLookup.SrvTxt(name, KafkaServiceFactory));
         }
 
-        private static KafkaService KafkaServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
+        private KafkaService KafkaServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
         {
+            ApplyDnsRandomizer(ref dnsEntries);
+
             return new KafkaService(dnsEntries)
             {
                 Name = name.ServiceName,

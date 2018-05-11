@@ -34,8 +34,10 @@ namespace Unearth.Smtp
             return Locate(name, _ => ServiceLookup.SrvTxt(name, SmtpServiceFactory));
         }
 
-        private static SmtpService SmtpServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
+        private SmtpService SmtpServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
         {
+            ApplyDnsRandomizer(ref dnsEntries);
+
             return new SmtpService(dnsEntries)
             {
                 Name = name.ServiceName,

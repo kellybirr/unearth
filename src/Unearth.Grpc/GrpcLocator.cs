@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Unearth.Core;
@@ -41,6 +42,9 @@ namespace Unearth.Grpc
                 ? new GrpcServiceLookup(name)
                 : new GrpcServiceLookupWithText(name);
 
+            // if randomizing endpoint order
+            serviceLookup.Randomize = this.Randomize;
+
             // preform lookup and return
             return Locate(name, serviceLookup.LocateFunction);
         }
@@ -57,6 +61,8 @@ namespace Unearth.Grpc
 
         private class GrpcServiceLookup
         {
+            internal bool Randomize { private get; set; }
+
             internal GrpcServiceLookup(ServiceDnsName name)
             {
                 Name = name;
@@ -71,6 +77,9 @@ namespace Unearth.Grpc
 
             protected GrpcService GrpcServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
             {
+                if (Randomize)  // re-sort psudo-randomly, honoring preference/priority
+                    dnsEntries = dnsEntries.OrderBy(e => (e as IOrderedDnsEntry)?.Randomizer);
+
                 return new GrpcService(dnsEntries) { Name = name.ServiceName };
             }
         }

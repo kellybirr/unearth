@@ -33,8 +33,10 @@ namespace Unearth
             return Locate(name, _ => ServiceLookup.SrvTxt(name, MyServiceFactory));
         }
 
-        private static GenericService MyServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
+        private GenericService MyServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
         {
+            ApplyDnsRandomizer(ref dnsEntries);
+
             return new GenericService(dnsEntries)
             {
                 Name = name.ServiceName,
