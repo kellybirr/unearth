@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Unearth.Core;
@@ -10,6 +11,8 @@ namespace Unearth.Grpc
 {
     public class GrpcService : ServiceBase<GrpcEndpoint>
     {
+        private static readonly TimeSpan Default_TryNextAfter = TimeSpan.FromMilliseconds(200);        
+
         public override string Protocol
         {
             get => "grpc";
@@ -26,13 +29,103 @@ namespace Unearth.Grpc
 
         public GrpcService(IEnumerable<Uri> uris) : base(UrisToEndpoints(uris)) { }
 
-        public async Task<Channel> Connect(TimeSpan timeout)
+        public Task<Channel> Connect(TimeSpan timeout)
+        {
+            return Connect(timeout, Default_TryNextAfter);
+        }
+
+        public async Task<Channel> Connect(TimeSpan timeout, TimeSpan tryNextAfter)
         {
             await new SynchronizationContextRemover();
 
             if (Endpoints == null || Endpoints.Count == 0)
                 throw new IndexOutOfRangeException("No Endpoints Specified");
 
+            // if infinite timespan
+            if (tryNextAfter == Timeout.InfiniteTimeSpan)
+                return await ConnectSlow(timeout);
+
+            var tasks = new List<Task>();            
+            var exceptions = new List<Exception>();
+
+            using (var cancel = new CancellationTokenSource())
+            {
+                Channel returnChannel = null;
+                object resultLock = new object();
+
+                foreach (var ep in Endpoints)
+                {
+                    // try connecting to servers in order
+                    DateTime timeoutUtc = DateTime.UtcNow.Add(timeout);
+                    var channel = ep.GetChannel(Credentials);
+                    tasks.Add(channel.ConnectAsync(timeoutUtc).ContinueWith(async t =>
+                    {
+                        // check result of connect action
+                        if (channel.State == ChannelState.Ready)
+                        {
+                            lock (resultLock)
+                            {
+                                if (t.IsCompleted && (returnChannel == null))
+                                    returnChannel = channel;    // winner
+                            }
+
+                            if (channel != returnChannel) // not the winner
+                                await channel.ShutdownAsync();
+                        }
+
+                        if (t.Exception != null)
+                        {
+                            lock (exceptions)
+                                exceptions.AddRange(t.Exception.InnerExceptions);
+
+                            t.Exception.Handle(_ => true);
+                        }
+                    }, cancel.Token));
+
+                    // wait for connect or delay
+                    if (tryNextAfter > TimeSpan.Zero)
+                    {
+                        try
+                        {
+                            tasks.Add( Task.Delay(tryNextAfter, cancel.Token) );
+                            Task completedTask = await Task.WhenAny(tasks);
+
+                            tasks.Remove(completedTask);
+                        }
+                        catch (TaskCanceledException) { }
+                    }
+
+                    // return if got a connect
+                    if (returnChannel != null)
+                    {
+                        if (! cancel.IsCancellationRequested)
+                            cancel.Cancel();
+
+                        return returnChannel;
+                    }
+                }
+
+                // try again after loop
+                try { await Task.WhenAny(tasks); }
+                catch (TaskCanceledException) { }
+
+                if (returnChannel != null)
+                    return returnChannel;
+
+                // last try
+                try { await Task.WhenAll(tasks); }
+                catch (TaskCanceledException) { }
+
+                if (returnChannel != null)
+                    return returnChannel;
+            }
+
+            // throw exception
+            throw new GrpcConnectException(exceptions);
+        }
+
+        private async Task<Channel> ConnectSlow(TimeSpan timeout)
+        {
             var exceptions = new List<Exception>();
             foreach (GrpcEndpoint ep in Endpoints)
             {   // try connecting to servers in order
@@ -60,6 +153,9 @@ namespace Unearth.Grpc
         public async Task<Channel[]> ConnectAll(TimeSpan timeout)
         {
             await new SynchronizationContextRemover();
+
+            if (Endpoints == null || Endpoints.Count == 0)
+                throw new IndexOutOfRangeException("No Endpoints Specified");
 
             var tasks = new Task[Endpoints.Count];
             var channels = new List<Channel>();
@@ -95,14 +191,19 @@ namespace Unearth.Grpc
             throw new GrpcConnectException(exceptions);
         }
 
-        public async Task Execute(Func<Channel, Task> action, TimeSpan connectTimeout)
+        public Task Execute(Func<Channel, Task> action, TimeSpan connectTimeout)
+        {
+            return Execute(action, connectTimeout, Default_TryNextAfter);
+        }
+
+        public async Task Execute(Func<Channel, Task> action, TimeSpan connectTimeout, TimeSpan tryNextAfter)
         {
             await new SynchronizationContextRemover();
 
             Channel channel = null;
             try
             {
-                channel = await Connect(connectTimeout);
+                channel = await Connect(connectTimeout, tryNextAfter);
                 await action(channel);
             }
             finally
@@ -112,14 +213,19 @@ namespace Unearth.Grpc
             }
         }
 
-        public async Task<TResult> Execute<TResult>(Func<Channel, Task<TResult>> action, TimeSpan connectTimeout)
+        public Task<TResult> Execute<TResult>(Func<Channel, Task<TResult>> action, TimeSpan connectTimeout)
+        {
+            return Execute(action, connectTimeout, Default_TryNextAfter);
+        }
+
+        public async Task<TResult> Execute<TResult>(Func<Channel, Task<TResult>> action, TimeSpan connectTimeout, TimeSpan tryNextAfter)
         {
             await new SynchronizationContextRemover();
 
             Channel channel = null;
             try
             {
-                channel = await Connect(connectTimeout);
+                channel = await Connect(connectTimeout, tryNextAfter);
                 return await action(channel);
             }
             finally
@@ -151,7 +257,7 @@ namespace Unearth.Grpc
                     Priority = ++priority,
                     Host = uri.Host,
                     Port = uri.Port,
-                    Expires = DateTime.UtcNow.AddHours(1)
+                    Expires = DateTime.UtcNow.AddMinutes(1)
                 };
             }
         }

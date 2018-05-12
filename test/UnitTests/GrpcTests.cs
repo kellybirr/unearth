@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Health.V1;
@@ -19,13 +20,19 @@ namespace ServiceResolver.UnitTests
             GrpcService svc = await locator.Locate("onumbers", ChannelCredentials.Insecure);
 
             Assert.IsNotNull(svc);
-            Assert.AreEqual(5, svc.Endpoints.Count);
+            Assert.IsTrue(svc.Endpoints.Count > 0);
 
             foreach (GrpcEndpoint ep in svc.Endpoints)
                 Console.WriteLine(ep);
 
-            //Assert.AreEqual("vrdswarm11.rnd.ipzo.net:7006", svc.Endpoints[0].ToString());
-            Assert.IsTrue(svc.Expires < DateTime.UtcNow.AddMinutes(1));
+            Assert.IsTrue(svc.Expires < DateTime.UtcNow.AddMinutes(15));
+            Console.WriteLine();
+
+            int ts = Environment.TickCount;
+            var channel = svc.Connect(TimeSpan.FromSeconds(2)).Result;
+            Assert.IsTrue(channel.State == ChannelState.Ready);
+
+            Console.WriteLine("Connected To: '{0}' in {1}ms", channel.Target, Environment.TickCount-ts);
         }
 
         [TestMethod]
@@ -63,6 +70,21 @@ namespace ServiceResolver.UnitTests
 
 
             Assert.AreEqual(HealthCheckResponse.Types.ServingStatus.Serving, reply.Status);
+        }
+
+        [TestMethod]
+        public async Task Cancel_Task_Test()
+        {
+            var cancel = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), cancel.Token);
+            }
+            catch (TaskCanceledException ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
     }
 }
