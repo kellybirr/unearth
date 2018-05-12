@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Unearth.Grpc</RootNamespace>
-    <Version>1.6.0.900</Version>
-    <AssemblyVersion>1.6.0.900</AssemblyVersion>
-    <FileVersion>1.6.0.900</FileVersion>
+    <Version>1.7.1.1010</Version>
+    <AssemblyVersion>1.7.1.1010</AssemblyVersion>
+    <FileVersion>1.7.1.1010</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
