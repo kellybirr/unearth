@@ -78,7 +78,7 @@ namespace Unearth.Grpc
             protected GrpcService GrpcServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
             {
                 if (Randomize)  // re-sort psudo-randomly, honoring preference/priority
-                    dnsEntries = dnsEntries.OrderBy(e => (e as IOrderedDnsEntry)?.Randomizer);
+                    dnsEntries = dnsEntries.OrderBy(e => (e as IOrderedDnsEntry2)?.Randomizer);
 
                 return new GrpcService(dnsEntries) { Name = name.ServiceName };
             }

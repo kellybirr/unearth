@@ -11,6 +11,10 @@ namespace Unearth.Dns
     public interface IOrderedDnsEntry
     {
         int SortOrder { get; }
+    }
+
+    public interface IOrderedDnsEntry2 : IOrderedDnsEntry
+    {
         int Randomizer { get; }
     }
 
@@ -130,7 +134,7 @@ namespace Unearth.Dns
         }
     }
 
-    public class DnsMailExchangeEntry : DnsEntry, IOrderedDnsEntry, IComparable<DnsMailExchangeEntry>, IComparable
+    public class DnsMailExchangeEntry : DnsEntry, IOrderedDnsEntry2, IComparable<DnsMailExchangeEntry>, IComparable
     {
         private static readonly Random _rGen = new Random();
         private readonly Lazy<int> _random = new Lazy<int>(() => _rGen.Next(0xf00), true);
@@ -158,7 +162,7 @@ namespace Unearth.Dns
 
         int IOrderedDnsEntry.SortOrder => Preference;
 
-        int IOrderedDnsEntry.Randomizer => (Preference << 16) | _random.Value;
+        int IOrderedDnsEntry2.Randomizer => (Preference << 16) | _random.Value;
 
         int IComparable<DnsMailExchangeEntry>.CompareTo(DnsMailExchangeEntry other)
         {
@@ -200,7 +204,7 @@ namespace Unearth.Dns
         }
     }
 
-    public class DnsServiceEntry : DnsEntry, IOrderedDnsEntry, IComparable<DnsServiceEntry>, IComparable
+    public class DnsServiceEntry : DnsEntry, IOrderedDnsEntry2, IComparable<DnsServiceEntry>, IComparable
     {
         private static readonly Random _rGen = new Random();
         private readonly Lazy<int> _random = new Lazy<int>(() => _rGen.Next(0xf00), true);
@@ -236,7 +240,7 @@ namespace Unearth.Dns
 
         int IOrderedDnsEntry.SortOrder => Priority;
 
-        int IOrderedDnsEntry.Randomizer => (Priority << 16) | _random.Value;
+        int IOrderedDnsEntry2.Randomizer => (Priority << 16) | _random.Value;
 
         int IComparable<DnsServiceEntry>.CompareTo(DnsServiceEntry other)
         {

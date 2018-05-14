@@ -116,7 +116,7 @@ namespace Unearth.Core
         protected void ApplyDnsRandomizer(ref IEnumerable<DnsEntry> dnsEntries)
         {            
             if (Randomize)  // re-sort psudo-randomly, honoring preference/priority
-                dnsEntries = dnsEntries.OrderBy(e => (e as IOrderedDnsEntry)?.Randomizer);
+                dnsEntries = dnsEntries.OrderBy(e => (e as IOrderedDnsEntry2)?.Randomizer);
         }
     }
 }
