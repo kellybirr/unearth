@@ -13,7 +13,7 @@ namespace ServiceResolver.UnitTests
         public async Task Redis_Test()
         {
             var locator = new RedisLocator();
-            var service = await locator.Locate();
+            var service = await locator.Locate("dark-rnd");
 
             IConnectionMultiplexer connection = await service.Connect();
             IDatabase cache = connection.GetDatabase();

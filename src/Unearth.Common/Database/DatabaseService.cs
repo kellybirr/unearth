@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Unearth.Dns;
@@ -8,8 +9,9 @@ namespace Unearth.Database
 {
     public class DatabaseService : GenericService
     {
-        private const string ADO = "ado";
+        private const string ADO = "ado", SQL = "sql";
         private const string MONGODB = "mongodb";
+        private const string REDIS = "redis";
 
         public DatabaseService()
         { }
@@ -36,7 +38,7 @@ namespace Unearth.Database
 
                 // default syntax based on protocol (default SQL=ADO)
                 if (! Parameters.TryGetString("syntax", out string syntax))
-                    syntax = (Protocol == MONGODB) ? MONGODB : ADO;
+                    syntax = (Protocol == SQL) ? ADO : Protocol;
 
                 switch (syntax.ToLowerInvariant())
                 {
@@ -44,11 +46,15 @@ namespace Unearth.Database
                         return BuildAdoConnectionStrings();
                     case MONGODB:
                         return BuildMongoConnectionString();
+                    case REDIS:
+                        return BuilRedisConnectionString();
                     default:
                         throw new NotSupportedException($"Connection string syntax `{syntax}` is not supported");
                 }
             }
         }
+
+
 
         private IEnumerable<string> BuildMongoConnectionString()
         {
@@ -141,6 +147,41 @@ namespace Unearth.Database
                 yield return str;
             }
         }
+
+        private IEnumerable<string> BuilRedisConnectionString()
+        {
+            // start building string
+            var sb = new StringBuilder("");
+
+            // add endpoints
+            foreach (ServiceEndpoint ep in Endpoints)
+            {
+                if (sb.Length > 0) sb.Append(',');
+                sb.Append($"{ep.Host}:{ep.Port}");
+            }
+
+            // check for ssl as a default
+            if (Endpoints.All(ep => ep.Port == 6380) && !Parameters.ContainsKey("ssl"))
+                sb.Append(",ssl=True");
+
+            // append options
+            foreach (var kv in Parameters)
+            {
+                if (kv.Key.StartsWith("#")) continue;
+
+                switch (kv.Key.ToLowerInvariant())
+                {
+                    case "syntax":
+                        break;
+                    default:
+                        sb.Append($",{kv.Key}={kv.Value}");
+                    break;
+                }
+            }
+
+            yield return sb.ToString();
+        }
+
         // use for SRV host:port substitution
         private readonly Regex _rxHost = new Regex(@"\{srv\:host\}", RegexOptions.IgnoreCase);
         private readonly Regex _rxPort = new Regex(@"\{srv\:port\}", RegexOptions.IgnoreCase);

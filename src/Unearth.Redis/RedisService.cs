@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using StackExchange.Redis;
@@ -50,8 +51,24 @@ namespace Unearth.Redis
                 var sb = new StringBuilder();
                 sb.Append(ServerList);
 
+                // check for ssl as a default
+                if (Endpoints.All(ep => ep.Port == 6380) && !Parameters.ContainsKey("ssl"))
+                    sb.Append(",ssl=True");
+
+                // all other parameters
                 foreach (var kv in Parameters)
-                    sb.Append($";{kv.Key}={kv.Value}");
+                {
+                    if (kv.Key.StartsWith("#")) continue;
+
+                    switch (kv.Key.ToLowerInvariant())
+                    {
+                        case "syntax":
+                            break;
+                        default:
+                            sb.Append($",{kv.Key}={kv.Value}");
+                            break;
+                    }
+                }
 
                 return sb.ToString();
             }

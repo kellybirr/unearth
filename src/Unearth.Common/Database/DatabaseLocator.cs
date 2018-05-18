@@ -60,6 +60,7 @@ namespace Unearth.Database
     public enum DatabaseProtocol
     {
         Sql,
-        MongoDb
+        MongoDb,
+        Redis
     }
 }

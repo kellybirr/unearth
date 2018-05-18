@@ -52,5 +52,26 @@ namespace ServiceResolver.UnitTests
             );
         }
 
+        [TestMethod]
+        public async Task RedisDb_Test()
+        {
+            var locator = new DatabaseLocator(); // {ServiceDomain = "kmb.home"};
+            Console.WriteLine("Testing in {0}", locator.ServiceDomain);
+
+            DatabaseService svc = await locator.Locate("dark-rnd", DatabaseProtocol.Redis);
+            Assert.IsNotNull(svc);
+
+            string[] connArray = svc.ConnectionStrings.ToArray();
+            Assert.IsTrue(connArray.Length == 1);
+
+            foreach (string s in connArray)
+                Console.WriteLine(s);
+
+            Assert.AreEqual(
+                "dark-rnd.redis.cache.windows.net:6380,ssl=True,abortConnect=False,password=6GFHu3Ghwm03VXejZesHWlY/Fzv4Km+xcBCOuleLnGE=",
+                connArray[0]
+            );
+        }
+
     }
 }
