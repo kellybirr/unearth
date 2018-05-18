@@ -21,6 +21,8 @@
     <ProjectReference Include="..\..\src\Unearth.Common\Unearth.Common.csproj" />
     <ProjectReference Include="..\..\src\Unearth.Core\Unearth.Core.csproj" />
     <ProjectReference Include="..\..\src\Unearth.Grpc\Unearth.Grpc.csproj" />
+    <ProjectReference Include="..\..\src\Unearth.Kafka\Unearth.Kafka.csproj" />
+    <ProjectReference Include="..\..\src\Unearth.Redis\Unearth.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>

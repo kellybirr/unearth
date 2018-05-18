@@ -2,19 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Unearth.Redis</RootNamespace>
     <Version>1.7.2.1020</Version>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="0.11.4" />
+    <PackageReference Include="StackExchange.Redis" Version="1.2.6" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\Unearth.Core\Unearth.Core.csproj" />
   </ItemGroup>
-
+  
 </Project>
