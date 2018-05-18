@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
     <RootNamespace>Unearth</RootNamespace>
     <AssemblyName>Unearth</AssemblyName>
     <Version>1.7.2.1020</Version>

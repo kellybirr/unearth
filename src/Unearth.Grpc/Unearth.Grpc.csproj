@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
     <RootNamespace>Unearth.Grpc</RootNamespace>
     <Version>1.7.2.1020</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.Core" Version="1.11.0" />
+    <PackageReference Include="Grpc.Core" Version="1.12.0" />
   </ItemGroup>
 
   <ItemGroup>

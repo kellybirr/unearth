@@ -47,17 +47,17 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Unearth.Common.Fx\Unearth.Common.Fx.csproj">
-      <Project>{2f769958-8093-4d86-9614-885ae1dbdd58}</Project>
-      <Name>Unearth.Common.Fx</Name>
+    <ProjectReference Include="..\..\src\Unearth.Common\Unearth.Common.csproj">
+      <Project>{11206686-ec90-4194-ac32-fb1e4163578e}</Project>
+      <Name>Unearth.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Unearth.Core.Fx\Unearth.Core.Fx.csproj">
-      <Project>{2f769958-8093-4d86-9614-885ae1dbdd59}</Project>
-      <Name>Unearth.Core.Fx</Name>
+    <ProjectReference Include="..\..\src\Unearth.Core\Unearth.Core.csproj">
+      <Project>{0fcd2ea0-ff60-4761-bb0e-bb0b4028e564}</Project>
+      <Name>Unearth.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Unearth.Grpc.Fx\Unearth.Grpc.Fx.csproj">
-      <Project>{5ec07026-9154-46d8-a401-213c29eb78f6}</Project>
-      <Name>Unearth.Grpc.Fx</Name>
+    <ProjectReference Include="..\..\src\Unearth.Grpc\Unearth.Grpc.csproj">
+      <Project>{9d36cc67-2cc6-4a82-9a8e-01421a82536e}</Project>
+      <Name>Unearth.Grpc</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
