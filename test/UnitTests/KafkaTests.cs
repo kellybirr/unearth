@@ -55,8 +55,7 @@ namespace ServiceResolver.UnitTests
                 {
                     while (! done)
                     {
-                        Message<Null, string> msg;
-                        if (consumer.Consume(out msg, TimeSpan.FromSeconds(1)))
+                        if (consumer.Consume(out Message<Null, string> msg, TimeSpan.FromSeconds(1)))
                         {
                             Console.WriteLine($"Topic: {msg.Topic} Partition: {msg.Partition} Offset: {msg.Offset} {msg.Value}");
                             consumer.CommitAsync(msg).Wait();

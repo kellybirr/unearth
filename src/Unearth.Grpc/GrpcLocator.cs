@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Unearth.Core;
@@ -10,18 +9,15 @@ namespace Unearth.Grpc
 {
     public class GrpcLocator : ServiceLocator<GrpcService>
     {
-        public bool NoText
-        {
-            get => _noText;
-            set
-            {
-                _noText = value;
-                Cache.Clear();
-            }
-        }
-        private bool _noText;
+        [Obsolete("Use `lookupParameters` option on Lookup() methods", true)]
+        public bool NoText { get; set; }
 
         public override Task<GrpcService> Locate(string serviceName)
+        {
+            return Locate(serviceName, false);
+        }
+
+        public Task<GrpcService> Locate(string serviceName, bool lookupParameters)
         {
             if (string.IsNullOrWhiteSpace(serviceName))
                 throw new ArgumentNullException(nameof(serviceName));
@@ -37,62 +33,58 @@ namespace Unearth.Grpc
                     : $"{serviceName.ToLowerInvariant()}._grpc._tcp.{ServiceDomain}"
             };
 
-            // actual lookup function
-            GrpcServiceLookup serviceLookup = _noText
-                ? new GrpcServiceLookup(name)
-                : new GrpcServiceLookupWithText(name);
-
-            // if randomizing endpoint order
-            serviceLookup.Randomize = this.Randomize;
+            // build lookup object
+            var serviceLookup = GrpcServiceLookup.Create(lookupParameters);
+            serviceLookup.Factory = GrpcServiceFactory;
+            serviceLookup.Name = name;
 
             // preform lookup and return
             return Locate(name, serviceLookup.LocateFunction);
         }
 
-        public async Task<GrpcService> Locate(string serviceName, ChannelCredentials credentials)
+        public Task<GrpcService> Locate(string serviceName, ChannelCredentials credentials)
+        {
+            return Locate(serviceName, false, credentials);
+        }
+
+        public async Task<GrpcService> Locate(string serviceName, bool lookupParameters, ChannelCredentials credentials)
         {
             await new SynchronizationContextRemover();
 
-            GrpcService service = await Locate(serviceName);
+            GrpcService service = await Locate(serviceName, lookupParameters);
             service.Credentials = credentials;
 
             return service;
         }
 
+        protected GrpcService GrpcServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
+        {
+            ApplyDnsRandomizer(ref dnsEntries);
+
+            return new GrpcService(dnsEntries)
+            {
+                Name = name.ServiceName,
+                Decryptor = { ServiceDomain = name.Domain }
+            };
+        }
+
         private class GrpcServiceLookup
         {
-            internal bool Randomize { private get; set; }
-
-            internal GrpcServiceLookup(ServiceDnsName name)
+            internal static GrpcServiceLookup Create(bool withText)
             {
-                Name = name;
+                return (withText) ? new GrpcServiceLookupWithText() : new GrpcServiceLookup();
             }
 
-            protected ServiceDnsName Name { get; }
+            internal ServiceDnsName Name { get; set; }
 
-            internal virtual SrvLookup<GrpcService> LocateFunction(string dnsName)
-            {
-                return ServiceLookup.Srv(Name, GrpcServiceFactory);
-            }
+            internal ServiceFactory<GrpcService> Factory { get; set; }
 
-            protected GrpcService GrpcServiceFactory(ServiceDnsName name, IEnumerable<DnsEntry> dnsEntries)
-            {
-                if (Randomize)  // re-sort psudo-randomly, honoring preference/priority
-                    dnsEntries = dnsEntries.OrderBy(e => (e as IOrderedDnsEntry2)?.Randomizer);
-
-                return new GrpcService(dnsEntries) { Name = name.ServiceName };
-            }
+            internal virtual SrvLookup<GrpcService> LocateFunction(string dnsName) => ServiceLookup.Srv(Name, Factory);
         }
 
         private class GrpcServiceLookupWithText : GrpcServiceLookup
         {
-            internal GrpcServiceLookupWithText(ServiceDnsName name) : base(name)
-            { }
-
-            internal override SrvLookup<GrpcService> LocateFunction(string dnsName)
-            {
-                return ServiceLookup.SrvTxt(Name, GrpcServiceFactory);
-            }
+            internal override SrvLookup<GrpcService> LocateFunction(string dnsName) => ServiceLookup.SrvTxt(Name, Factory);
         }
     }
 }

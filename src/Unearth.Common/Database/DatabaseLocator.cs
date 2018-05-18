@@ -18,6 +18,27 @@ namespace Unearth.Database
             return Locate(serviceName, protocol.ToString());
         }
 
+        public Task<DatabaseService> Locate(DatabaseProtocol protocol)
+        {
+            // lower-invariant protocol & service name
+            string protocolName = protocol.ToString().ToLowerInvariant();
+            string serviceName = $"_{protocolName}";
+
+            // get name of service to resolve
+            ServiceDnsName name = new ServiceDnsName
+            {
+                Domain = ServiceDomain,
+                ServiceName = serviceName,
+                Protocol = protocolName,
+                DnsName = string.IsNullOrEmpty(ServiceDomain)
+                    ? serviceName.ToLowerInvariant()
+                    : $"{serviceName.ToLowerInvariant()}._tcp.{ServiceDomain}"
+            };
+
+            // locate and return
+            return Locate(name, _ => ServiceLookup.SrvTxt(name, DbServiceFactory));
+        }
+
         public Task<DatabaseService> Locate(string serviceName, string protocol)
         {
             if (string.IsNullOrWhiteSpace(serviceName))
