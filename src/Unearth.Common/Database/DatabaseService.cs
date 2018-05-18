@@ -151,7 +151,7 @@ namespace Unearth.Database
         private IEnumerable<string> BuilRedisConnectionString()
         {
             // start building string
-            var sb = new StringBuilder("");
+            var sb = new StringBuilder();
 
             // add endpoints
             foreach (ServiceEndpoint ep in Endpoints)
