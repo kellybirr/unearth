@@ -7,19 +7,6 @@
     <Version>1.7.2.1020</Version>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="DnsQuery.cs" />
-    <Compile Remove="DnsQueryAsync.cs" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Unearth.Core\Unearth.Core.csproj" />
   </ItemGroup>

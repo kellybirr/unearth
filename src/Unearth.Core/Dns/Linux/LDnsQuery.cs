@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-#if (NETSTANDARD2_0)
 namespace Unearth.Dns.Linux
 {
     internal class LDnsQuery : IDnsQuery
@@ -253,4 +252,3 @@ namespace Unearth.Dns.Linux
         public UInt16 DataLen { get; }
     }
 }
-#endif

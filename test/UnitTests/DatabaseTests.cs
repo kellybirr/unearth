@@ -15,7 +15,7 @@ namespace ServiceResolver.UnitTests
             var locator = new DatabaseLocator(); // {ServiceDomain = "kmb.home"};
             Console.WriteLine("Testing in {0}", locator.ServiceDomain);
 
-            DatabaseService svc = await locator.Locate("onumbers-db", DatabaseProtocol.Sql);
+            DatabaseService svc = await locator.Locate("fluf-workflow-db", DatabaseProtocol.Sql);
             Assert.IsNotNull(svc);
 
             string[] connArray = svc.ConnectionStrings.ToArray();
@@ -25,7 +25,8 @@ namespace ServiceResolver.UnitTests
                 Console.WriteLine(s);
 
             Assert.AreEqual(
-                "Server=tcp:dilbert7.kmb.home,1433;Database=Onumbers;Integrated Security=SSPI;",
+                "Server=tcp:vrdworkflow01.rnd.ipzo.net,1433;Database=WorkflowConfig;User ID=fluf_app;Password=Password1!;",
+                //"Server=tcp:dilbert7.kmb.home,1433;Database=Onumbers;Integrated Security=SSPI;",
                 //"Server=tcp:vrdlfadb01.rnd.ipzo.net,1433;Database=Onumbers;User ID=sa;Password=C4bb4g5;Applicaiton Name=kellyb;",
                 connArray[0]
                 );

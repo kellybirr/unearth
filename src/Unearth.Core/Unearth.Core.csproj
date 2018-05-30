@@ -7,8 +7,20 @@
     <Version>1.7.2.1020</Version>
   </PropertyGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <Compile Remove="StringValues.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net47'">
+    <Compile Remove="Dns\Linux\LDnsQuery.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Dns\Linux\" />
   </ItemGroup>
 
 </Project>

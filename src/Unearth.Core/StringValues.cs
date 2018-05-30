@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 // ReSharper disable All
 
-#if (! NETSTANDARD2_0)
 namespace Unearth
 {
     /// <summary>
@@ -457,4 +456,3 @@ namespace Microsoft.Extensions.Primitives
 {
     // This prevents compile errors - don't delete it in the NetFX project
 }
-#endif
