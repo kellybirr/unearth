@@ -1,5 +1,5 @@
 ﻿<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\Microsoft.Net.Compilers.2.8.0\build\Microsoft.Net.Compilers.props" Condition="Exists('..\..\packages\Microsoft.Net.Compilers.2.8.0\build\Microsoft.Net.Compilers.props')" />
+  <Import Project="..\..\packages\Microsoft.Net.Compilers.2.8.2\build\Microsoft.Net.Compilers.props" Condition="Exists('..\..\packages\Microsoft.Net.Compilers.2.8.2\build\Microsoft.Net.Compilers.props')" />
   <Import Project="..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.8\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.8\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -125,13 +125,17 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Unearth.Core\Unearth.Core.csproj">
-      <Project>{0fcd2ea0-ff60-4761-bb0e-bb0b4028e564}</Project>
-      <Name>Unearth.Core</Name>
+    <ProjectReference Include="..\..\src\Unearth.Common.Fx\Unearth.Common.Fx.csproj">
+      <Project>{2f769958-8093-4d86-9614-885ae1dbdd58}</Project>
+      <Name>Unearth.Common.Fx</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Unearth.Grpc\Unearth.Grpc.csproj">
-      <Project>{9d36cc67-2cc6-4a82-9a8e-01421a82536e}</Project>
-      <Name>Unearth.Grpc</Name>
+    <ProjectReference Include="..\..\src\Unearth.Core.Fx\Unearth.Core.Fx.csproj">
+      <Project>{2f769958-8093-4d86-9614-885ae1dbdd59}</Project>
+      <Name>Unearth.Core.Fx</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Unearth.Grpc.Fx\Unearth.Grpc.Fx.csproj">
+      <Project>{5ec07026-9154-46d8-a401-213c29eb78f6}</Project>
+      <Name>Unearth.Grpc.Fx</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
@@ -164,8 +168,8 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.8\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.8\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-    <Error Condition="!Exists('..\..\packages\Microsoft.Net.Compilers.2.8.0\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Net.Compilers.2.8.0\build\Microsoft.Net.Compilers.props'))" />
     <Error Condition="!Exists('..\..\packages\Grpc.Core.1.12.0\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Grpc.Core.1.12.0\build\net45\Grpc.Core.targets'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.Net.Compilers.2.8.2\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Net.Compilers.2.8.2\build\Microsoft.Net.Compilers.props'))" />
   </Target>
   <Import Project="..\..\packages\Grpc.Core.1.12.0\build\net45\Grpc.Core.targets" Condition="Exists('..\..\packages\Grpc.Core.1.12.0\build\net45\Grpc.Core.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

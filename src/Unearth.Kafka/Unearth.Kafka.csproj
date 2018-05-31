@@ -1,12 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
-    <Version>1.7.2.1020</Version>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Unearth.Kafka</RootNamespace>
     <LangVersion>latest</LangVersion>
+    <Version>1.7.5.1090</Version>
   </PropertyGroup>
 
   <ItemGroup>

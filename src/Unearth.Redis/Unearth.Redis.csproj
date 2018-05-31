@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Unearth.Redis</RootNamespace>
-    <Version>1.7.2.1020</Version>
+    <Version>1.7.5.1090</Version>
   </PropertyGroup>
 
   <ItemGroup>
