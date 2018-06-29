@@ -103,7 +103,7 @@ namespace Unearth.Dns.Linux
 #pragma warning disable IDE1006 // Naming Styles
     internal static unsafe class LinuxLib 
     {
-        private const string BSD_LIBRESOLV = "libresolv";
+        private const string BSD_LIBRESOLV = "libresolv.so.2";
         private const string LINUX_LIBRESOLV = "libresolv.so.2";
         private const string OSX_LIBRESOLV = "libresolv.9.dylib";
 
@@ -135,30 +135,30 @@ namespace Unearth.Dns.Linux
 
         internal static int res_query (string dname, int cls, int type, byte[] header, int headerlen)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))    // OSX
-                return osx_res_query(dname, cls, type, header, headerlen);
-            
             try
-            {   // LINUX
-                return linux_res_query(dname, cls, type, header, headerlen);
+            {  
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))    // OSX
+                    return osx_res_query(dname, cls, type, header, headerlen);
+                else                                                    // LINUX
+                    return linux_res_query(dname, cls, type, header, headerlen);
             }
             catch (EntryPointNotFoundException)
-            {   // BSD?
+            {   // BSD or ALT OSX ?
                 return bsd_res_query(dname, cls, type, header, headerlen);
             }
         }
 
         internal static int dn_expand (byte* msg, byte* endorig, byte* comp_dn, byte[] exp_dn, int length)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))    // OSX
-                return osx_dn_expand(msg, endorig, comp_dn, exp_dn, length);
-
             try
-            {   // LINUX
-                return linux_dn_expand(msg, endorig, comp_dn, exp_dn, length);
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))    // OSX
+                    return osx_dn_expand(msg, endorig, comp_dn, exp_dn, length);
+                else                                                    // LINUX
+                    return linux_dn_expand(msg, endorig, comp_dn, exp_dn, length);
             }
             catch (EntryPointNotFoundException)
-            {   // BSD?
+            {   // BSD or ALT OSX ?
                 return bsd_dn_expand(msg, endorig, comp_dn, exp_dn, length);
             }
         }
