@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Unearth.Grpc</RootNamespace>
-    <Version>1.7.6.1095</Version>
+    <Version>1.7.7.1200</Version>
   </PropertyGroup>
 
   <ItemGroup>
