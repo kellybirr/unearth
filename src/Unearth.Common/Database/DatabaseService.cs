@@ -96,6 +96,9 @@ namespace Unearth.Database
 
                 switch (kv.Key.ToLowerInvariant())
                 {
+                    case "@user":
+                    case "@password":
+                        break;
                     case "syntax":
                     case "database":
                         break;
