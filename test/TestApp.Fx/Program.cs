@@ -21,7 +21,7 @@ namespace TestApp.Fx
             {
                 Console.WriteLine("Usage: ue.exe <grpc|http|sql|mongodb|dns|tcp|udp> <service-idenitifier> [dns-type]");
                 Console.WriteLine("       OR");
-                Console.WriteLine("       ue.exe enc <string> <key>");
+                Console.WriteLine("       ue.exe <enc|dec> <string> [pepper]");
                 return;
             }
 
@@ -32,8 +32,18 @@ namespace TestApp.Fx
                 switch (args[0].ToLowerInvariant())
                 {
                     case "enc":
-                        var aes = new AesCrypto {KeyPhrase = args[2]};
-                        Console.WriteLine("Encrypted = \"{aes:" + aes.Encrypt(args[1]) + "}\"");
+                    case "dec":
+                        var aes = new AesCrypto();
+                        if (args.Length > 2) aes.KeyPhrase = args[2];
+                        Console.WriteLine("Pepper = '{0}'", aes.KeyPhrase);
+                        if (args[0].ToLowerInvariant() == "enc")
+                            Console.WriteLine("\nEncrypted = \"{aes:" + aes.Encrypt(args[1]) + "}\"");
+                        else
+                        {
+                            string cipherText = args[1].Replace("{aes:", "").Replace("}", "");
+                            Console.WriteLine("\nDecrypted = \"" + aes.Decrypt(cipherText) + "\"");
+                        }
+
                         break;
                     case "dns":
                         if (Enum.TryParse(args[2], out DnsRecordType recordType))
@@ -41,7 +51,7 @@ namespace TestApp.Fx
                             var query = new DnsQuery(args[1], recordType);
                             DnsEntry[] records = query.Resolve().Result;
 
-                            foreach (DnsEntry rec in records)
+                            foreach (DnsEntry rec in query.AllRecords)
                                 Console.WriteLine($"({rec.Type}) {rec}");
                         }
                         break;
