@@ -4,11 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Unearth.Kafka</RootNamespace>
     <LangVersion>latest</LangVersion>
-    <Version>1.7.7.1200</Version>
+    <Version>1.8.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="0.11.5" />
+    <PackageReference Include="Confluent.Kafka" Version="1.8.2" />
   </ItemGroup>
 
   <ItemGroup>

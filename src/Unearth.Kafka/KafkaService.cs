@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using Confluent.Kafka;
-using Confluent.Kafka.Serialization;
 using Microsoft.Extensions.Primitives;
 using Unearth.Dns;
 
@@ -34,80 +33,69 @@ namespace Unearth.Kafka
             }
         }
 
-        public Producer GetProducer()
+        public IProducer<Null, TValue> GetProducer<TValue>(ISerializer<TValue> valueSerializer)
         {
-            return new Producer(GetProducerConfig());
+            return GetProducer<Null, TValue>(GetProducerConfig(), null, valueSerializer);
         }
 
-        public Producer GetProducer(IEnumerable<KeyValuePair<string, object>> configuration)
+        public IProducer<Null, TValue> GetProducer<TValue>(IEnumerable<KeyValuePair<string, string>> configuration, ISerializer<TValue> valueSerializer)
         {
-            return new Producer(GetProducerConfig(configuration));
+            return GetProducer<Null, TValue>(GetProducerConfig(configuration), null, valueSerializer);
         }
 
-        public Producer<Null, TValue> GetProducer<TValue>(ISerializer<TValue> valueSerializer)
+        public IProducer<TKey, TValue> GetProducer<TKey, TValue>(ISerializer<TKey> keySerializer, ISerializer<TValue> valueSerializer)
         {
-            return new Producer<Null, TValue>(GetProducerConfig(), null, valueSerializer);
+            return GetProducer<TKey, TValue>(GetProducerConfig(), keySerializer, valueSerializer);
         }
 
-        public Producer<Null, TValue> GetProducer<TValue>(IEnumerable<KeyValuePair<string, object>> configuration, ISerializer<TValue> valueSerializer)
+        public IProducer<TKey, TValue> GetProducer<TKey, TValue>(IEnumerable<KeyValuePair<string, string>> configuration, ISerializer<TKey> keySerializer, ISerializer<TValue> valueSerializer)
         {
-            return new Producer<Null, TValue>(GetProducerConfig(configuration), null, valueSerializer);
+            var builder = new ProducerBuilder<TKey, TValue>(GetProducerConfig(configuration));
+            if (keySerializer != null) builder.SetKeySerializer(keySerializer);
+            if (valueSerializer != null) builder.SetValueSerializer(valueSerializer);
+
+            return builder.Build();
+
         }
 
-        public Producer<TKey, TValue> GetProducer<TKey, TValue>(ISerializer<TKey> keySerializer, ISerializer<TValue> valueSerializer)
+        public IDictionary<string, string> GetProducerConfig() => BuildConfig(KafkaConfigType.Producer);
+
+        public IDictionary<string, string> GetProducerConfig(IEnumerable<KeyValuePair<string, string>> extendedConfig) => BuildConfig(KafkaConfigType.Producer, extendedConfig);
+
+        public IConsumer<Null, TValue> GetConsumer<TValue>(IDeserializer<TValue> valueDeserializer)
         {
-            return new Producer<TKey, TValue>(GetProducerConfig(), keySerializer, valueSerializer);
+            return GetConsumer<Null, TValue>(GetConsumerConfig(), null, valueDeserializer);
         }
 
-        public Producer<TKey, TValue> GetProducer<TKey, TValue>(IEnumerable<KeyValuePair<string, object>> configuration, ISerializer<TKey> keySerializer, ISerializer<TValue> valueSerializer)
+        public IConsumer<Null, TValue> GetConsumer<TValue>(IEnumerable<KeyValuePair<string, string>> configuration, IDeserializer<TValue> valueDeserializer)
         {
-            return new Producer<TKey, TValue>(GetProducerConfig(configuration), keySerializer, valueSerializer);
+            return GetConsumer<Null, TValue>(GetConsumerConfig(configuration), null, valueDeserializer);
         }
 
-        public IDictionary<string, object> GetProducerConfig() => BuildConfig(KafkaConfigType.Producer);
-
-        public IDictionary<string, object> GetProducerConfig(IEnumerable<KeyValuePair<string, object>> extendedConfig) => BuildConfig(KafkaConfigType.Producer, extendedConfig);
-
-        public Consumer GetConsumer()
+        public IConsumer<TKey, TValue> GetConsumer<TKey, TValue>(IDeserializer<TKey> keyDeserializer, IDeserializer<TValue> valueDeserializer)
         {
-            return new Consumer(GetConsumerConfig());
+            return GetConsumer(GetConsumerConfig(), keyDeserializer, valueDeserializer);
         }
 
-        public Consumer GetConsumer(IEnumerable<KeyValuePair<string, object>> configuration)
+        public IConsumer<TKey, TValue> GetConsumer<TKey, TValue>(IEnumerable<KeyValuePair<string, string>> configuration, IDeserializer<TKey> keyDeserializer, IDeserializer<TValue> valueDeserializer)
         {
-            return new Consumer(GetConsumerConfig(configuration));
+            var builder = new ConsumerBuilder<TKey, TValue>(GetConsumerConfig(configuration));
+            if (keyDeserializer != null) builder.SetKeyDeserializer(keyDeserializer);
+            if (valueDeserializer != null) builder.SetValueDeserializer(valueDeserializer);
+
+            return builder.Build();
         }
 
-        public Consumer<Null, TValue> GetConsumer<TValue>(IDeserializer<TValue> valueDeserializer)
-        {
-            return new Consumer<Null, TValue>(GetConsumerConfig(), null, valueDeserializer);
-        }
+        public IDictionary<string, string> GetConsumerConfig() => BuildConfig(KafkaConfigType.Consumer);
 
-        public Consumer<Null, TValue> GetConsumer<TValue>(IEnumerable<KeyValuePair<string, object>> configuration, IDeserializer<TValue> valueDeserializer)
-        {
-            return new Consumer<Null, TValue>(GetConsumerConfig(configuration), null, valueDeserializer);
-        }
+        public IDictionary<string, string> GetConsumerConfig(IEnumerable<KeyValuePair<string, string>> extendedConfig) => BuildConfig(KafkaConfigType.Consumer, extendedConfig);
 
-        public Consumer<TKey, TValue> GetConsumer<TKey, TValue>(IDeserializer<TKey> keyDeserializer, IDeserializer<TValue> valueDeserializer)
-        {
-            return new Consumer<TKey, TValue>(GetConsumerConfig(), keyDeserializer, valueDeserializer);
-        }
-
-        public Consumer<TKey, TValue> GetConsumer<TKey, TValue>(IEnumerable<KeyValuePair<string, object>> configuration, IDeserializer<TKey> keyDeserializer, IDeserializer<TValue> valueDeserializer)
-        {
-            return new Consumer<TKey, TValue>(GetConsumerConfig(configuration), keyDeserializer, valueDeserializer);
-        }
-
-        public IDictionary<string, object> GetConsumerConfig() => BuildConfig(KafkaConfigType.Consumer);
-
-        public IDictionary<string, object> GetConsumerConfig(IEnumerable<KeyValuePair<string, object>> extendedConfig) => BuildConfig(KafkaConfigType.Consumer, extendedConfig);
-
-        private IDictionary<string, object> BuildConfig(KafkaConfigType configType)
+        private IDictionary<string, string> BuildConfig(KafkaConfigType configType)
         {
             const string producerPrefix = "producer/", consumerPrefix = "consumer/";
             const StringComparison strComp = StringComparison.InvariantCultureIgnoreCase;
 
-            var d = new Dictionary<string, object> {{"bootstrap.servers", Brokers}};
+            var d = new Dictionary<string, string> {{"bootstrap.servers", Brokers}};
 
             foreach (KeyValuePair<string, StringValues> pair in Parameters)
             {
@@ -140,11 +128,11 @@ namespace Unearth.Kafka
             return d;
         }
 
-        private IDictionary<string, object> BuildConfig(KafkaConfigType configType,
-            IEnumerable<KeyValuePair<string, object>> extendedConfig)
+        private IDictionary<string, string> BuildConfig(KafkaConfigType configType,
+            IEnumerable<KeyValuePair<string, string>> extendedConfig)
         {
-            IDictionary<string, object> cfg = BuildConfig(configType);
-            foreach (KeyValuePair<string, object> pair in extendedConfig)
+            IDictionary<string, string> cfg = BuildConfig(configType);
+            foreach (KeyValuePair<string, string> pair in extendedConfig)
                 cfg[pair.Key] = pair.Value;
 
             return cfg;

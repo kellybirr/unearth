@@ -3,11 +3,18 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Unearth.Grpc</RootNamespace>
-    <Version>1.7.7.1200</Version>
+      <Version>1.8.0</Version>
+      <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+      <Authors>Kelly Birr</Authors>
+      <Description>A very useful library for locating gRPC services</Description>
+      <PackageProjectUrl>https://github.com/kellybirr/unearth</PackageProjectUrl>
+      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.Core" Version="1.10.0" />
+    <PackageReference Include="Grpc.Core" Version="2.43.0" />
   </ItemGroup>
 
   <ItemGroup>

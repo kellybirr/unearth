@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Confluent.Kafka;
-using Confluent.Kafka.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Unearth.Kafka;
 

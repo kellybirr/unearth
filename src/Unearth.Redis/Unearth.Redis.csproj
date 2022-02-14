@@ -3,11 +3,18 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Unearth.Redis</RootNamespace>
-    <Version>1.7.7.1200</Version>
+      <Version>1.8.0</Version>
+      <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+      <Authors>Kelly Birr</Authors>
+      <Description>A very useful library for locating Redis services</Description>
+      <PackageProjectUrl>https://github.com/kellybirr/unearth</PackageProjectUrl>
+      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StackExchange.Redis" Version="1.2.6" />
+    <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
   </ItemGroup>
   
   <ItemGroup>

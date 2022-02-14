@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.10
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "test\UnitTests\UnitTests.csproj", "{F86946D5-F1BC-4E55-AB74-072007141072}"
 EndProject
@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unearth.Grpc", "src\Unearth
 EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "docs", "docs\", "{92CBE080-9CD9-42A2-92BC-FC6209987F2C}"
 	ProjectSection(WebsiteProperties) = preProject
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5"
 		Debug.AspNetCompiler.VirtualPath = "/localhost_62222"
 		Debug.AspNetCompiler.PhysicalPath = "docs\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_62222\"
@@ -41,12 +41,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unearth.Redis", "src\Unearth.Redis\Unearth.Redis.csproj", "{72F1C08F-C34B-4EE1-8CE0-009872700D23}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests.Fx", "test\UnitTests.Fx\UnitTests.Fx.csproj", "{461AF5EC-0639-41A1-884C-E8FFF452CFD4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unearth.Common.Fx", "src\Unearth.Common.Fx\Unearth.Common.Fx.csproj", "{2F769958-8093-4D86-9614-885AE1DBDD58}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unearth.Core.Fx", "src\Unearth.Core.Fx\Unearth.Core.Fx.csproj", "{2F769958-8093-4D86-9614-885AE1DBDD59}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unearth.Grpc.Fx", "src\Unearth.Grpc.Fx\Unearth.Grpc.Fx.csproj", "{5EC07026-9154-46D8-A401-213C29EB78F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -94,18 +88,6 @@ Global
 		{461AF5EC-0639-41A1-884C-E8FFF452CFD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{461AF5EC-0639-41A1-884C-E8FFF452CFD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{461AF5EC-0639-41A1-884C-E8FFF452CFD4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F769958-8093-4D86-9614-885AE1DBDD58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F769958-8093-4D86-9614-885AE1DBDD58}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F769958-8093-4D86-9614-885AE1DBDD58}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F769958-8093-4D86-9614-885AE1DBDD58}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F769958-8093-4D86-9614-885AE1DBDD59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F769958-8093-4D86-9614-885AE1DBDD59}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F769958-8093-4D86-9614-885AE1DBDD59}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F769958-8093-4D86-9614-885AE1DBDD59}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5EC07026-9154-46D8-A401-213C29EB78F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5EC07026-9154-46D8-A401-213C29EB78F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5EC07026-9154-46D8-A401-213C29EB78F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5EC07026-9154-46D8-A401-213C29EB78F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

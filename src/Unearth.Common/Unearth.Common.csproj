@@ -4,7 +4,14 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Unearth</RootNamespace>
     <AssemblyName>Unearth</AssemblyName>
-    <Version>1.7.8.1210</Version>
+      <Version>1.8.0</Version>
+      <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+      <Authors>Kelly Birr</Authors>
+      <Description>A very useful library for locating common services</Description>
+      <PackageProjectUrl>https://github.com/kellybirr/unearth</PackageProjectUrl>
+      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
